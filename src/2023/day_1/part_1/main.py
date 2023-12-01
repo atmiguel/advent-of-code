@@ -1,5 +1,5 @@
-import os
 from pathlib import Path
+from src.helpers.file import read_file_as_lines
 
 
 def find_first_digit(*, line: str) -> int:
@@ -34,16 +34,6 @@ def extract_value_from_lines(*, lines: list[str]) -> int:
 
 
 # TODO move this to a shared place
-def read_file_as_lines(*, file_path: str) -> list[str]:
-    with open(file_path, 'r') as fin:
-        content = fin.read()
-
-    return [
-        line
-        for line in content.split('\n')
-        if len(line) > 0
-    ]
-
 
 # TODO move this to a shared place
 def write_to_file(*, content: str, file_path: str) -> None:
