@@ -9,7 +9,7 @@ readme = "README.md"
 python = "^3.12"
 
 [tool.poetry.scripts]
-day1 = "adventofcode.2023.day_1.part_1.main:main"
+day1 = "adventofcode._2023._1.p1:main"
 
 [build-system]
 requires = ["poetry-core"]

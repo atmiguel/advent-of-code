@@ -1,6 +1,5 @@
 from typing import Optional, Tuple
 
-
 DIGITS_BY_WORD = {
     'one': 1,
     'two': 2,
