@@ -78,4 +78,3 @@ if __name__ == '__main__':
         lines_consumer=lambda lines: extract_value_from_lines(lines=lines),
         file_path='../input.txt',
     )
-
