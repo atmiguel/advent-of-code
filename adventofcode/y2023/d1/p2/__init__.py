@@ -140,9 +140,8 @@ def read_file_as_lines(*, file_path: str) -> list[str]:
     ]
 
 
-if __name__ == '__main__':
+def main():
     # lines = read_file_as_lines(file_path='example2.txt')
     lines = read_file_as_lines(file_path='actual.txt')
     value = extract_value_from_lines(lines=lines)
     print(value)
-
