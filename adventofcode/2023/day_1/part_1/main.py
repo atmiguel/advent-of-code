@@ -1,5 +1,5 @@
 from pathlib import Path
-from src.helpers.file import read_file_as_lines
+from adventofcode.helpers.file import read_file_as_lines
 
 
 def find_first_digit(*, line: str) -> int:
@@ -59,12 +59,13 @@ def execute(*, lines_consumer, file_path: str) -> None:
     write_to_file(content=str(value), file_path=f'{filename}_output.txt')
 
 
-if __name__ == '__main__':
-    execute(
-        lines_consumer=lambda lines: extract_value_from_lines(lines=lines),
-        file_path='example.txt',
-    )
-    execute(
-        lines_consumer=lambda lines: extract_value_from_lines(lines=lines),
-        file_path='../input.txt',
-    )
+def main():
+    print('hey')
+    # execute(
+    #     lines_consumer=lambda lines: extract_value_from_lines(lines=lines),
+    #     file_path='example.txt',
+    # )
+    # execute(
+    #     lines_consumer=lambda lines: extract_value_from_lines(lines=lines),
+    #     file_path='../input.txt',
+    # )

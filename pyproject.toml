@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "advent-of-code"
+name = "adventofcode"
 version = "0.1.0"
 description = ""
 authors = []
@@ -7,6 +7,9 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
+
+[tool.poetry.scripts]
+day1 = "adventofcode.2023.day_1.part_1.main:main"
 
 [build-system]
 requires = ["poetry-core"]
