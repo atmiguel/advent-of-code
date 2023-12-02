@@ -27,7 +27,7 @@ def extract_value_from_line(*, line: str) -> int:
     return (10 * first_digit) + last_digit
 
 
-def extract_value_from_lines(lines: Sequence[str]) -> str:
+def solution(lines: Sequence[str], /) -> str:
     return sum(
         extract_value_from_line(line=line)
         for line in lines
@@ -35,5 +35,5 @@ def extract_value_from_lines(lines: Sequence[str]) -> str:
 
 
 def main():
-    executor.execute_example(extract_value_from_lines)
-    executor.execute_actual(extract_value_from_lines)
+    executor.execute_example(solution)
+    executor.execute_actual(solution)
