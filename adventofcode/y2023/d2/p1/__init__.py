@@ -72,6 +72,13 @@ class Deserializer:
 
         return Game(id_=id_, cube_sets=cube_sets)
 
+    @staticmethod
+    def to_games(*, lines: Sequence[str]) -> Sequence[Game]:
+        return (
+            Deserializer.to_game(line=line)
+            for line in lines
+        )
+
 
 def is_cube_set_valid(*, cube_set: CubeSet) -> bool:
     for color, count in cube_set.counts_by_color.items():
@@ -90,14 +97,9 @@ def is_game_valid(*, game: Game) -> bool:
 
 
 def solution(lines: Sequence[str], /) -> None:
-    games = (
-        Deserializer.to_game(line=line)
-        for line in lines
-    )
-
     return sum(
         game.id_
-        for game in games
+        for game in Deserializer.to_games(lines=lines)
         if is_game_valid(game=game)
     )
 

@@ -20,14 +20,9 @@ def calculate_power(*, game: p1.Game) -> int:
 
 
 def solution(lines: Sequence[str], /) -> None:
-    games = (
-        p1.Deserializer.to_game(line=line)
-        for line in lines
-    )
-
     return sum(
         calculate_power(game=game)
-        for game in games
+        for game in p1.Deserializer.to_games(lines=lines)
     )
 
 
