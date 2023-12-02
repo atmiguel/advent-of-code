@@ -22,13 +22,39 @@ def _find_output_directory_path(*, code_path: str) -> Path:
 
 
 def _read_input_file(*, code_path: str, filename: str) -> Sequence[str]:
-    example_path = _find_input_directory_path(code_path=code_path) / filename
-    return file.read_lines(path=example_path)
+    path = _find_input_directory_path(code_path=code_path) / filename
+    return file.read_lines(path=path)
 
 
-def read_example(code_path: str, /) -> Sequence[str]:
+# returns output file path
+def _write_output_file(*, code_path: str, content: str, filename: str) -> Path:
+    path = _find_output_directory_path(code_path=code_path) / filename
+    file.write(content=content, path=path)
+
+    return path
+
+
+def read_example(*, code_path: str) -> Sequence[str]:
     return _read_input_file(code_path=code_path, filename='example.txt')
 
 
-def read_actual(code_path: str, /) -> Sequence[str]:
+def read_actual(*, code_path: str) -> Sequence[str]:
     return _read_input_file(code_path=code_path, filename='actual.txt')
+
+
+# returns output file path
+def write_example(*, code_path: str, content: str) -> Path:
+    return _write_output_file(
+        code_path=code_path,
+        content=content,
+        filename='example.txt',
+    )
+
+
+# returns output file path
+def write_actual(*, code_path: str, content: str) -> Path:
+    return _write_output_file(
+        code_path=code_path,
+        content=content,
+        filename='actual.txt',
+    )
