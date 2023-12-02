@@ -1,6 +1,6 @@
 import inspect
 from pathlib import Path
-from typing import Callable, Sequence, Any
+from typing import Any, Callable, Sequence
 
 from adventofcode.helpers import resources
 

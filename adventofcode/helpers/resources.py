@@ -1,15 +1,14 @@
 from pathlib import Path
 from typing import Sequence
 
-from adventofcode.helpers.paths import PROJECT_DIRECTORY_PATH, SOURCE_DIRECTORY_PATH
-from adventofcode.helpers import file
+from adventofcode.helpers import file, paths
 
 
-RESOURCES_DIRECTORY_PATH = PROJECT_DIRECTORY_PATH / 'resources'
+RESOURCES_DIRECTORY_PATH = paths.PROJECT_DIRECTORY_PATH / 'resources'
 
 
 def _find_resources_directory_path(*, code_path: str) -> Path:
-    path_relative_to_source = Path(code_path).relative_to(SOURCE_DIRECTORY_PATH)
+    path_relative_to_source = Path(code_path).relative_to(paths.SOURCE_DIRECTORY_PATH)
     return RESOURCES_DIRECTORY_PATH / path_relative_to_source.parent
 
 

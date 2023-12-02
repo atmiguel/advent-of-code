@@ -1,4 +1,7 @@
-from typing import Optional, Tuple
+from typing import Optional, Sequence, Tuple
+
+from adventofcode.helpers import executor
+
 
 DIGITS_BY_WORD = {
     'one': 1,
@@ -11,6 +14,8 @@ DIGITS_BY_WORD = {
     'eight': 8,
     'nine': 9,
 }
+
+# TODO(adrian@gradient.ai, 12/01/2023): clean up solution with typed dicts at least
 
 
 # returns (index, digit)
@@ -122,26 +127,13 @@ def extract_value_from_line(*, line: str) -> int:
     return (10 * first_digit) + last_digit
 
 
-def extract_value_from_lines(*, lines: list[str]) -> int:
+def extract_value_from_lines(lines: Sequence[str], /) -> int:
     return sum(
         extract_value_from_line(line=line)
         for line in lines
     )
 
 
-def read_file_as_lines(*, file_path: str) -> list[str]:
-    with open(file_path, 'r') as fin:
-        content = fin.read()
-
-    return [
-        line
-        for line in content.split('\n')
-        if len(line) > 0
-    ]
-
-
 def main():
-    # lines = read_file_as_lines(file_path='example2.txt')
-    lines = read_file_as_lines(file_path='actual.txt')
-    value = extract_value_from_lines(lines=lines)
-    print(value)
+    executor.execute_example(extract_value_from_lines)
+    executor.execute_actual(extract_value_from_lines)
