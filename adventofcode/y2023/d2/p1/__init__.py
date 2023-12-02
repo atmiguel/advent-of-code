@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Sequence, Dict, Tuple
 
-from adventofcode.helpers import executor
+from adventofcode.helpers import executor, strings
 
 
 COLORS = {'red', 'green', 'blue'}
@@ -25,15 +25,6 @@ class Game:
     cube_sets: Sequence[CubeSet]
 
 
-# TODO: Move this to shared location
-def split(value: str, /, *, delimiter: str, expected_count: int) -> Sequence[str]:
-    parts = value.split(delimiter)
-    assert len(parts) == expected_count, \
-        f'expected {expected_count} parts splitting {value} by {delimiter}'
-
-    return parts
-
-
 class Deserializer:
     # line = <game_part>: <cubes_part>
     # game_part = Game <game_id>
@@ -43,7 +34,7 @@ class Deserializer:
 
     @staticmethod
     def to_game_id(*, game_part: str) -> int:
-        game_word, id_ = split(game_part, delimiter=' ', expected_count=2)
+        game_word, id_ = strings.split(game_part, delimiter=' ', expected_count=2)
         assert game_word == 'Game'
 
         return int(id_)
@@ -52,7 +43,7 @@ class Deserializer:
     def to_cube_spec(*, cube_spec: str) -> Tuple[str, int]:
         # returns (cube_color, cube_count)
 
-        cube_count, cube_color = split(cube_spec, delimiter=' ', expected_count=2)
+        cube_count, cube_color = strings.split(cube_spec, delimiter=' ', expected_count=2)
         assert cube_color in COLORS
 
         return (cube_color, int(cube_count))
@@ -75,7 +66,7 @@ class Deserializer:
 
     @staticmethod
     def to_game(*, line: str) -> Game:
-        game_part, cubes_part = split(line, delimiter=': ', expected_count=2)
+        game_part, cubes_part = strings.split(line, delimiter=': ', expected_count=2)
         id_ = Deserializer.to_game_id(game_part=game_part)
         cube_sets = Deserializer.to_cube_sets(cubes_part=cubes_part)
 
