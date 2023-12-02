@@ -113,4 +113,4 @@ def solution(lines: Sequence[str], /) -> None:
 
 def main():
     executor.execute_example(solution)
-    # executor.execute_actual(solution)
+    executor.execute_actual(solution)
