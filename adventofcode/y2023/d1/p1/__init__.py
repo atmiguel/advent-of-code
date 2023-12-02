@@ -1,5 +1,5 @@
 from pathlib import Path
-from adventofcode.helpers.file import read_file_as_lines
+from adventofcode.helpers import resources
 
 
 def find_first_digit(*, line: str) -> int:
@@ -34,23 +34,9 @@ def extract_value_from_lines(*, lines: list[str]) -> int:
 
 
 # TODO move this to a shared place
-
-# TODO move this to a shared place
-def write_to_file(*, content: str, file_path: str) -> None:
-    with open(file_path, 'w') as fout:
-        fout.write(content)
-        fout.write('\n')
-
-
-# TODO move this to a shared place
-def get_filename_without_extension(*, file_path: str) -> str:
-    return Path(file_path).stem
-
-
-# TODO move this to a shared place
 # TODO add type to lines_consumer
 def execute(*, lines_consumer, file_path: str) -> None:
-    lines = read_file_as_lines(file_path=file_path)
+    lines = file.read_lines(path=file_path)
     value = lines_consumer(lines)
     print(f'Result for {file_path}:')
     print(value)
@@ -60,7 +46,10 @@ def execute(*, lines_consumer, file_path: str) -> None:
 
 
 def main():
-    print('hey')
+    print(resources.read_actual(__file__))
+
+    # print(__file__)
+    # print(file.read_lines(path='resources/y2023/d1/p1/in/example.txt'))
     # execute(
     #     lines_consumer=lambda lines: extract_value_from_lines(lines=lines),
     #     file_path='example.txt',

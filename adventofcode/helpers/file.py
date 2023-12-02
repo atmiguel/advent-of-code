@@ -1,9 +1,19 @@
-def read_file_as_lines(*, file_path: str) -> list[str]:
-    with open(file_path, 'r') as fin:
-        content = fin.read()
+from pathlib import Path
+from typing import Sequence
 
-    return [
+
+def read_lines(*, path: Path) -> Sequence[str]:
+    with open(path, 'r') as f:
+        content = f.read()
+
+    return tuple(
         line
         for line in content.split('\n')
         if len(line) > 0
-    ]
+    )
+
+
+def write(*, content: str, path: Path) -> None:
+    with open(path, 'w') as f:
+        f.write(content)
+        f.write('\n')
