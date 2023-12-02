@@ -20,7 +20,7 @@ def find_last_digit(*, line: str) -> int:
     raise Exception('expected to find a digit')
 
 
-def extract_value_from_line(*, line: str) -> int:
+def calculate_value(*, line: str) -> int:
     first_digit = find_first_digit(line=line)
     last_digit = find_last_digit(line=line)
 
@@ -29,7 +29,7 @@ def extract_value_from_line(*, line: str) -> int:
 
 def solution(lines: Sequence[str], /) -> str:
     return sum(
-        extract_value_from_line(line=line)
+        calculate_value(line=line)
         for line in lines
     )
 
