@@ -1,6 +1,6 @@
-from pathlib import Path
-from adventofcode.helpers import resources, executor
 from typing import Sequence
+
+from adventofcode.helpers import executor
 
 
 def find_first_digit(*, line: str) -> int:
