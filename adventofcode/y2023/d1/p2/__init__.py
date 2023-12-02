@@ -17,8 +17,7 @@ DIGITS_BY_WORD = {
 
 
 def find_first_digit(*, line: str) -> int:
-    if len(line) == 0:
-        raise Exception('expected to find digit')
+    assert len(line) > 0
 
     char = line[0]
     if char.isdigit():
@@ -32,8 +31,7 @@ def find_first_digit(*, line: str) -> int:
 
 
 def find_last_digit(*, line: str) -> int:
-    if len(line) == 0:
-        raise Exception('expected to find digit')
+    assert len(line) > 0
 
     char = line[-1]
     if char.isdigit():
