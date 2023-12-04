@@ -23,9 +23,10 @@ def parse_grid(*, lines: Sequence[str]) -> Grid:
     symbol_locations: Set[Location] = set()
     part_numbers: Sequence[PartNumber] = []
 
-    part_number_locations: Sequence[Location] = []
-    part_number_value: int = 0
     for row_index, line in enumerate(lines):
+        part_number_locations: Sequence[Location] = []
+        part_number_value: int = 0
+
         for column_index, char in enumerate(line):
             if char.isdigit():
                 part_number_locations.append((row_index, column_index))
@@ -44,7 +45,6 @@ def parse_grid(*, lines: Sequence[str]) -> Grid:
                     part_number_locations = []
                     part_number_value = 0
 
-                # todo: check if ending number
                 match char:
                     case '.':
                         continue
