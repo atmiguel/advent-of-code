@@ -48,7 +48,7 @@ def parse_grid(*, lines: Sequence[str]) -> Grid:
                 match char:
                     case '.':
                         continue
-                    case '*' | '#' | '+' | '$':
+                    case '*' | '#' | '+' | '$' | '%' | '=' | '-' | '/' | '@' | '&':
                         symbol_locations.add((row_index, column_index))
                     case _:
                         raise Exception(f'unexpected character: {char}')
@@ -82,19 +82,17 @@ def get_adjacent_locations(*, location: Location) -> Set[Location]:
 
 
 def is_location_near_a_symbol(*, location: Location, symbol_locations: Set[Location]) -> bool:
-    for adjacent_location in get_adjacent_locations(location=location):
-        if adjacent_location in symbol_locations:
-            return True
-    
-    return False
+    return any(
+        adjacent_location in symbol_locations
+        for adjacent_location in get_adjacent_locations(location=location)
+    )
 
 
 def is_part_number_near_a_symbol(*, part_number: PartNumber, symbol_locations: Set[Location]) -> bool:
-    for location in part_number.locations:
-        if is_location_near_a_symbol(location=location, symbol_locations=symbol_locations):
-            return True
-
-    return False
+    return any(
+        is_location_near_a_symbol(location=location, symbol_locations=symbol_locations)
+        for location in part_number.locations
+    )
 
 
 def solution(lines: Sequence[str], /) -> int:
@@ -112,4 +110,4 @@ def solution(lines: Sequence[str], /) -> int:
 
 def main():
     executor.execute_example(solution)
-    # executor.execute_actual(solution)
+    executor.execute_actual(solution)
