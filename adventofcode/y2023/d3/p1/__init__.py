@@ -67,10 +67,47 @@ def parse_grid(*, lines: Sequence[str]) -> Grid:
     )
 
 
-def solution(lines: Sequence[str], /) -> None:
+def get_adjacent_locations(*, location: Location) -> Set[Location]:
+    adjacent_locations: Set[Location] = set()
+    for row_adjustment in (-1, 0, 1):
+        for column_adjustment in (-1, 0, 1):
+            if row_adjustment == 0 and column_adjustment == 0:
+                continue
+
+            adjacent_locations.add(
+                (location[0] + row_adjustment, location[1] + column_adjustment)
+            )
+    
+    return adjacent_locations
+
+
+def is_location_near_a_symbol(*, location: Location, symbol_locations: Set[Location]) -> bool:
+    for adjacent_location in get_adjacent_locations(location=location):
+        if adjacent_location in symbol_locations:
+            return True
+    
+    return False
+
+
+def is_part_number_near_a_symbol(*, part_number: PartNumber, symbol_locations: Set[Location]) -> bool:
+    for location in part_number.locations:
+        if is_location_near_a_symbol(location=location, symbol_locations=symbol_locations):
+            return True
+
+    return False
+
+
+def solution(lines: Sequence[str], /) -> int:
     grid = parse_grid(lines=lines)
-    print(grid.symbol_locations)
-    print(grid.part_numbers)
+
+    return sum(
+        part_number.value
+        for part_number in grid.part_numbers
+        if is_part_number_near_a_symbol(
+            part_number=part_number,
+            symbol_locations=grid.symbol_locations,
+        )
+    )
 
 
 def main():
