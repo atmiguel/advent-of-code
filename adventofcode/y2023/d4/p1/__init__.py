@@ -5,16 +5,15 @@ from adventofcode.helpers import executor
 
 
 MULTIPLE_DIGITS = parsy.decimal_digit.at_least(1).concat().map(int)
-MULTIPLE_WHITESPACES = parsy.whitespace.many()
-NUMBER_LIST = MULTIPLE_WHITESPACES.then(
-    MULTIPLE_DIGITS.skip(MULTIPLE_WHITESPACES).at_least(1)
+NUMBER_LIST = parsy.whitespace.then(
+    MULTIPLE_DIGITS.skip(parsy.whitespace).at_least(1)
 )
 
 COLON = parsy.string(':')
 PIPE = parsy.string('|')
 CARD = parsy.string('Card')
 
-LINE = CARD.then(MULTIPLE_WHITESPACES).then(
+LINE = CARD.then(parsy.whitespace).then(
     parsy.seq(
         MULTIPLE_DIGITS.skip(COLON),
         NUMBER_LIST.skip(PIPE),
