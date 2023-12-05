@@ -57,7 +57,7 @@ def calculate_points(*, scratch_card: ScratchCard) -> int:
     return 0 if count == 0 else 2 ** (count - 1)
 
 
-def solution(lines: Sequence[str], /) -> None:
+def solution(lines: Sequence[str], /) -> int:
     return sum(
         calculate_points(
             scratch_card=parse_scratch_card(line=line)

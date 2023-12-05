@@ -1,116 +1,89 @@
 from dataclasses import dataclass
-from typing import Sequence, Tuple, Set
+from typing import Sequence, Set, Dict
+import parsy
 
 from adventofcode.helpers import executor
 
 
-Location = Tuple[int, int] # (row_index, column_index)
+NUMBER = parsy.decimal_digit.at_least(1).concat().map(int)
+NUMBER_LIST = NUMBER.skip(parsy.whitespace.many()).at_least(1)
+
+COLON = parsy.string(':')
+PIPE = parsy.string('|')
+CARD = parsy.string('Card')
+
+LINE = (
+    CARD
+    .then(parsy.whitespace)
+    .then(
+        parsy.seq(
+            NUMBER
+            .skip(COLON)
+            .skip(parsy.whitespace),
+            NUMBER_LIST
+            .skip(PIPE)
+            .skip(parsy.whitespace),
+            NUMBER_LIST
+        )
+    )
+)
 
 
 @dataclass(frozen=True, kw_only=True)
-class PartNumber:
-    locations: Set[Location]
-    value: int
+class ScratchCard:
+    id_: int
+    scratched_numbers: Sequence[int]
+    winning_numbers: Set[int]
 
 
-@dataclass(frozen=True, kw_only=True)
-class Grid:
-    gear_locations: Set[Location]
-    part_numbers: Sequence[PartNumber]
+def parse_scratch_card(*, line: str) -> ScratchCard:
+    id_, raw_winning_numbers, scratched_numbers = LINE.parse(line)
 
+    winning_numbers = set(raw_winning_numbers)
+    assert len(raw_winning_numbers) == len(winning_numbers)
 
-def parse_grid(*, lines: Sequence[str]) -> Grid:
-    gear_locations: Set[Location] = set()
-    part_numbers: Sequence[PartNumber] = []
-
-    for row_index, line in enumerate(lines):
-        part_number_locations: Set[Location] = set()
-        part_number_value: int = 0
-
-        for column_index, char in enumerate(line):
-            if char.isdigit():
-                part_number_locations.add((row_index, column_index))
-                if part_number_value == 0:
-                    part_number_value = int(char)
-                else:
-                    part_number_value = (10 * part_number_value) + int(char)
-            else:
-                if part_number_value > 0:
-                    part_numbers.append(
-                        PartNumber(
-                            locations=part_number_locations,
-                            value=part_number_value
-                        )
-                    )
-                    part_number_locations = set()
-                    part_number_value = 0
-
-                match char:
-                    case '.' | '#' | '+' | '$' | '%' | '=' | '-' | '/' | '@' | '&':
-                        continue
-                    case '*':
-                        gear_locations.add((row_index, column_index))
-                    case _:
-                        raise Exception(f'unexpected character: {char}')
-
-        if part_number_value > 0:
-            part_numbers.append(
-                PartNumber(
-                    locations=part_number_locations,
-                    value=part_number_value
-                )
-            )
-    
-    return Grid(
-        part_numbers=part_numbers,
-        gear_locations=gear_locations,
+    return ScratchCard(
+        id_=id_,
+        scratched_numbers=scratched_numbers,
+        winning_numbers=winning_numbers
     )
 
 
-def get_adjacent_locations(*, location: Location) -> Set[Location]:
-    adjacent_locations: Set[Location] = set()
-    for row_adjustment in (-1, 0, 1):
-        for column_adjustment in (-1, 0, 1):
-            if row_adjustment == 0 and column_adjustment == 0:
+def count_winning_numbers(*, scratch_card: ScratchCard) -> int:
+    return sum(
+        1
+        for number in scratch_card.scratched_numbers
+        if number in scratch_card.winning_numbers
+    )
+
+
+def calculate_points(*, scratch_cards: Sequence[ScratchCard]) -> int:
+    copies_by_id: Dict[int, int] = {
+        scratch_card.id_: 1
+        for scratch_card in scratch_cards
+    }
+
+    for scratch_card in scratch_cards:
+        count = count_winning_numbers(scratch_card=scratch_card)
+        copy_count = copies_by_id[scratch_card.id_]
+
+        for i in range(count):
+            card_id = scratch_card.id_ + i + 1
+            if card_id not in copies_by_id:
                 continue
 
-            adjacent_locations.add(
-                (location[0] + row_adjustment, location[1] + column_adjustment)
-            )
-    
-    return adjacent_locations
+            copies_by_id[card_id] += copy_count
 
-
-def is_location_near_part_number(*, location: Location, part_number: PartNumber) -> bool:
-    return any(
-        adjacent_location in part_number.locations
-        for adjacent_location in get_adjacent_locations(location=location)
-    )
-
-
-def get_adjacent_part_numbers(*, location: Location, part_numbers: Sequence[PartNumber]) -> Sequence[PartNumber]:
-    return tuple(
-        part_number
-        for part_number in part_numbers
-        if is_location_near_part_number(location=location, part_number=part_number)
-    )
-
-
-def calculate_gear_ratio(*, gear_location: Location, part_numbers: Sequence[PartNumber]) -> int:
-    adjacent_part_numbers = get_adjacent_part_numbers(location=gear_location, part_numbers=part_numbers)
-    if len(adjacent_part_numbers) != 2:
-        return 0
-    
-    return adjacent_part_numbers[0].value * adjacent_part_numbers[1].value
+    return sum(copies_by_id.values())
 
 
 def solution(lines: Sequence[str], /) -> int:
-    grid = parse_grid(lines=lines)
-
-    return sum(
-        calculate_gear_ratio(gear_location=gear_location, part_numbers=grid.part_numbers)
-        for gear_location in grid.gear_locations
+    scratch_cards = tuple(
+        parse_scratch_card(line=line)
+        for line in lines
     )
+
+    return calculate_points(scratch_cards=scratch_cards)
 
 
 def main():
