@@ -1,44 +1,71 @@
+from dataclasses import dataclass
 import parsy
-from typing import Sequence
+from typing import Sequence, Set
 
 from adventofcode.helpers import executor
 
 
-MULTIPLE_DIGITS = parsy.decimal_digit.at_least(1).concat().map(int)
-NUMBER_LIST = parsy.whitespace.then(
-    MULTIPLE_DIGITS.skip(parsy.whitespace).at_least(1)
-)
+NUMBER = parsy.decimal_digit.at_least(1).concat().map(int)
+NUMBER_LIST = NUMBER.skip(parsy.whitespace.many()).at_least(1)
 
 COLON = parsy.string(':')
 PIPE = parsy.string('|')
 CARD = parsy.string('Card')
 
-LINE = CARD.then(parsy.whitespace).then(
-    parsy.seq(
-        MULTIPLE_DIGITS.skip(COLON),
-        NUMBER_LIST.skip(PIPE),
-        NUMBER_LIST
+LINE = (
+    CARD
+    .then(parsy.whitespace)
+    .then(NUMBER)
+    .then(COLON)
+    .then(parsy.whitespace)
+    .then(
+        parsy.seq(
+            NUMBER_LIST
+            .skip(PIPE)
+            .skip(parsy.whitespace),
+            NUMBER_LIST
+        )
     )
 )
 
 
-def solution(lines: Sequence[str], /) -> None:
-    id_, magic_numbers, actual_numbers = LINE.parse('Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53')
-    print(id_)
-    print(magic_numbers)
-    print(actual_numbers)
-    # grid = parse_grid(lines=lines)
+@dataclass(frozen=True, kw_only=True)
+class ScratchCard:
+    scratched_numbers: Sequence[int]
+    winning_numbers: Set[int]
 
-    # return sum(
-    #     part_number.value
-    #     for part_number in grid.part_numbers
-    #     if is_part_number_near_a_symbol(
-    #         part_number=part_number,
-    #         symbol_locations=grid.symbol_locations,
-    #     )
-    # )
+
+def parse_scratch_card(*, line: str) -> ScratchCard:
+    raw_winning_numbers, scratched_numbers = LINE.parse(line)
+
+    winning_numbers = set(raw_winning_numbers)
+    assert len(raw_winning_numbers) == len(winning_numbers)
+
+    return ScratchCard(
+        scratched_numbers=scratched_numbers,
+        winning_numbers=winning_numbers
+    )
+
+
+def calculate_points(*, scratch_card: ScratchCard) -> int:
+    count = sum(
+        1
+        for number in scratch_card.scratched_numbers
+        if number in scratch_card.winning_numbers
+    )
+
+    return 0 if count == 0 else 2 ** (count - 1)
+
+
+def solution(lines: Sequence[str], /) -> None:
+    return sum(
+        calculate_points(
+            scratch_card=parse_scratch_card(line=line)
+        )
+        for line in lines
+    )
 
 
 def main():
     executor.execute_example(solution)
-    # executor.execute_actual(solution)
+    executor.execute_actual(solution)
