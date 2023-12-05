@@ -6,6 +6,7 @@ authors = []
 readme = "README.md"
 
 [tool.poetry.dependencies]
+parsy = "2.1"
 python = "^3.12"
 
 [tool.poetry.group.dev.dependencies]
