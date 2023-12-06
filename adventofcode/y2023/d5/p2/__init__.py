@@ -14,7 +14,8 @@ SPACES = SPACE.at_least(1)
 NUMBER = parsy.decimal_digit.at_least(1).concat().map(int)
 NUMBER_LIST = NUMBER.sep_by(SPACES)
 
-SEEDS_LINE = parsy.string('seeds: ').then(NUMBER_LIST)
+SEEDS = NUMBER.sep_by(SPACES, min=2, max=2)
+SEEDS_LINE = parsy.string('seeds: ').then(SEEDS.sep_by(SPACES))
 CATEGORY_MAPS_LINE = NUMBER.sep_by(SPACES, min=3, max=3)
 
 
@@ -47,8 +48,14 @@ class CategoryMap:
 
 
 @dataclass(frozen=True, kw_only=True)
+class Seed:
+    length: int
+    start: int
+
+
+@dataclass(frozen=True, kw_only=True)
 class Almanac:
-    seeds: Sequence[int]
+    seeds: Sequence[Seed]
     seed_to_soil: Sequence[CategoryMap]
     soil_to_fertilizer: Sequence[CategoryMap]
     fertilizer_to_water: Sequence[CategoryMap]
@@ -75,6 +82,22 @@ def parse_category_maps(*, maps: Sequence[Sequence[int]]) -> Sequence[CategoryMa
     )
 
 
+def parse_seed(*, seed: Sequence[int]) -> Seed:
+    start, length = seed
+
+    return Seed(
+        length=length,
+        start=start,
+    )
+
+
+def parse_seeds(*, seeds: Sequence[Sequence[int]]) -> Sequence[Seed]:
+    return tuple(
+        parse_seed(seed=seed)
+        for seed in seeds
+    )
+
+
 def parse_almanac(*, lines: Sequence[str]) -> Almanac:
     # TODO(adrian@gradient.ai, 12/05/2023): consider getting full file instead of lines
     file_content = '\n'.join(lines)
@@ -91,7 +114,7 @@ def parse_almanac(*, lines: Sequence[str]) -> Almanac:
     ) = FILE.parse(file_content)
 
     return Almanac(
-        seeds=seeds,
+        seeds=parse_seeds(seeds=seeds),
         seed_to_soil=parse_category_maps(maps=seed_to_soil_maps),
         soil_to_fertilizer=parse_category_maps(maps=soil_to_fertilizer_maps),
         fertilizer_to_water=parse_category_maps(maps=fertizlier_to_water_maps),
@@ -125,22 +148,23 @@ def calculate_seed_location(*, almanac: Almanac, seed: int) -> int:
 
 def solution(lines: Sequence[str], /) -> int:
     almanac = parse_almanac(lines=lines)
+    print(almanac)
 
-    min_location = None
-    for i in range(0, len(almanac.seeds), 2):
-        seed_start = almanac.seeds[i]
-        seed_length = almanac.seeds[i + 1]
+    # min_location = None
+    # for i in range(0, len(almanac.seeds), 2):
+    #     seed_start = almanac.seeds[i]
+    #     seed_length = almanac.seeds[i + 1]
 
-        for seed in range(seed_start, seed_start + seed_length):
-            location = calculate_seed_location(almanac=almanac, seed=seed)
-            if min_location is None:
-                min_location = location
-            else:
-                min_location = min(location, min_location)
+    #     for seed in range(seed_start, seed_start + seed_length):
+    #         location = calculate_seed_location(almanac=almanac, seed=seed)
+    #         if min_location is None:
+    #             min_location = location
+    #         else:
+    #             min_location = min(location, min_location)
 
-    return min_location
+    # return min_location
 
 
 def main():
     executor.execute_example(solution)
-    executor.execute_actual(solution)
+    # executor.execute_actual(solution)
