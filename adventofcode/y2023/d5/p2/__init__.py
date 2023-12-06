@@ -48,14 +48,14 @@ class CategoryMap:
 
 
 @dataclass(frozen=True, kw_only=True)
-class Seed:
+class Range:
     length: int
     start: int
 
 
 @dataclass(frozen=True, kw_only=True)
 class Almanac:
-    seeds: Sequence[Seed]
+    seeds_range: Sequence[Range]
     seed_to_soil: Sequence[CategoryMap]
     soil_to_fertilizer: Sequence[CategoryMap]
     fertilizer_to_water: Sequence[CategoryMap]
@@ -76,24 +76,27 @@ def parse_category_map(*, map: Sequence[int]) -> CategoryMap:
 
 
 def parse_category_maps(*, maps: Sequence[Sequence[int]]) -> Sequence[CategoryMap]:
-    return tuple(
+    category_maps = [
         parse_category_map(map=map)
         for map in maps
-    )
+    ]
+
+    category_maps.sort(key=lambda x: x.source_start)
+    return tuple(category_maps)
 
 
-def parse_seed(*, seed: Sequence[int]) -> Seed:
+def parse_seed_range(*, seed: Sequence[int]) -> Range:
     start, length = seed
 
-    return Seed(
+    return Range(
         length=length,
         start=start,
     )
 
 
-def parse_seeds(*, seeds: Sequence[Sequence[int]]) -> Sequence[Seed]:
+def parse_seed_ranges(*, seeds: Sequence[Sequence[int]]) -> Sequence[Range]:
     return tuple(
-        parse_seed(seed=seed)
+        parse_seed_range(seed=seed)
         for seed in seeds
     )
 
@@ -114,7 +117,7 @@ def parse_almanac(*, lines: Sequence[str]) -> Almanac:
     ) = FILE.parse(file_content)
 
     return Almanac(
-        seeds=parse_seeds(seeds=seeds),
+        seeds_range=parse_seed_ranges(seeds=seeds),
         seed_to_soil=parse_category_maps(maps=seed_to_soil_maps),
         soil_to_fertilizer=parse_category_maps(maps=soil_to_fertilizer_maps),
         fertilizer_to_water=parse_category_maps(maps=fertizlier_to_water_maps),
