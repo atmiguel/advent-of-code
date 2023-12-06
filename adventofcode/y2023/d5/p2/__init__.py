@@ -152,9 +152,6 @@ def get_destination_ranges(*, category_maps: Sequence[CategoryMap], source_range
                 )
                 source_cursor = range_end
 
-            if source_cursor == source_end:
-                break
-
             if source_cursor >= category_source_start:
                 range_end = min(source_end, category_source_end)
                 destination_ranges.append(
