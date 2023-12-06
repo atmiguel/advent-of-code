@@ -132,16 +132,13 @@ def get_destination_ranges(*, category_maps: Sequence[CategoryMap], source_range
     destination_ranges: Sequence[Range] = []
 
     for source_range in source_ranges:
-        # Range(length=14, start=74)
         source_cursor = source_range.start
         source_end = source_range.start + source_range.length
 
         for category_map in category_maps:
-            # CategoryMap(destination_start=45, length=23, source_start=77)
-            category_source_start = category_map.source_start # 77
-            category_source_end = category_map.source_start + category_map.length # 100
+            category_source_start = category_map.source_start
+            category_source_end = category_map.source_start + category_map.length
 
-            # source_cursor = 77
             if source_cursor >= category_source_end:
                 continue
 
@@ -183,42 +180,13 @@ def get_destination_ranges(*, category_maps: Sequence[CategoryMap], source_range
 
 
 def calculate_seed_location(*, almanac: Almanac) -> int:
-    print('seed:', almanac.seed_ranges)
-
     soil_ranges = get_destination_ranges(category_maps=almanac.seed_to_soil, source_ranges=almanac.seed_ranges)
-    print(almanac.seed_to_soil)
-    print()
-    print('soil:', soil_ranges)
-
     fertilizer_ranges = get_destination_ranges(category_maps=almanac.soil_to_fertilizer, source_ranges=soil_ranges)
-    print(almanac.soil_to_fertilizer)
-    print()
-    print('fertilizer:', fertilizer_ranges)
-
     water_ranges = get_destination_ranges(category_maps=almanac.fertilizer_to_water, source_ranges=fertilizer_ranges)
-    print(almanac.fertilizer_to_water)
-    print()
-    print('water:', water_ranges)
-
     light_ranges = get_destination_ranges(category_maps=almanac.water_to_light, source_ranges=water_ranges)
-    print(almanac.water_to_light)
-    print()
-    print('light:', light_ranges)
-
     temperature_ranges = get_destination_ranges(category_maps=almanac.light_to_temperature, source_ranges=light_ranges)
-    print(almanac.light_to_temperature)
-    print()
-    print('temperature:', temperature_ranges)
-
     humidity_ranges = get_destination_ranges(category_maps=almanac.temperature_to_humidity, source_ranges=temperature_ranges)
-    print(almanac.temperature_to_humidity)
-    print()
-    print('humidity:', humidity_ranges)
-
     location_ranges = get_destination_ranges(category_maps=almanac.humidity_to_location, source_ranges=humidity_ranges)
-    print(almanac.humidity_to_location)
-    print()
-    print('location:', location_ranges)
 
     return min(
         location_range.start
