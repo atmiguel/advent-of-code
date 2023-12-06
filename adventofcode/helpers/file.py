@@ -6,11 +6,11 @@ def read_lines(*, path: Path) -> Sequence[str]:
     with open(path, 'r') as f:
         content = f.read()
 
-    return tuple(
-        line
-        for line in content.split('\n')
-        if len(line) > 0
-    )
+    lines = content.split('\n')
+    if len(lines[-1]) == 0:
+        lines = lines[:-1]
+
+    return tuple(lines)
 
 
 def write(*, content: str, path: Path) -> None:
