@@ -55,7 +55,7 @@ class Range:
 
 @dataclass(frozen=True, kw_only=True)
 class Almanac:
-    seeds_range: Sequence[Range]
+    seed_ranges: Sequence[Range]
     seed_to_soil: Sequence[CategoryMap]
     soil_to_fertilizer: Sequence[CategoryMap]
     fertilizer_to_water: Sequence[CategoryMap]
@@ -117,7 +117,7 @@ def parse_almanac(*, lines: Sequence[str]) -> Almanac:
     ) = FILE.parse(file_content)
 
     return Almanac(
-        seeds_range=parse_seed_ranges(seeds=seeds),
+        seed_ranges=parse_seed_ranges(seeds=seeds),
         seed_to_soil=parse_category_maps(maps=seed_to_soil_maps),
         soil_to_fertilizer=parse_category_maps(maps=soil_to_fertilizer_maps),
         fertilizer_to_water=parse_category_maps(maps=fertizlier_to_water_maps),
@@ -128,44 +128,72 @@ def parse_almanac(*, lines: Sequence[str]) -> Almanac:
     )
 
 
-def get_destination_value(*, category_maps: Sequence[CategoryMap], source: int) -> int:
-    for category_map in category_maps:
-        distance = source - category_map.source_start
-        if distance >= 0 and distance < category_map.length:
-            return category_map.destination_start + distance
+def get_destination_ranges(*, category_maps: Sequence[CategoryMap], source_ranges: Sequence[Range]) -> Sequence[Range]:
+    destination_ranges: Sequence[Range] = []
 
-    return source
+    for source_range in source_ranges:
+        source_cursor = source_range.start
+        source_end = source_range.start + source_range.length
+
+        for category_map in category_maps:
+            category_source_start = category_map.source_start
+            category_source_end = category_map.source_start + category_map.length
+
+            if source_cursor >= category_source_end:
+                continue
+
+            if source_cursor < category_source_start:
+                range_end = min(source_end, category_source_start)
+                destination_ranges.append(
+                    Range(
+                        length=range_end - source_cursor,
+                        start=source_cursor,
+                    )
+                )
+                source_cursor = range_end
+
+            if source_cursor == source_end:
+                break
+
+            if source_cursor > category_source_start:
+                range_end = min(source_end, category_source_end)
+                destination_ranges.append(
+                    Range(
+                        length=range_end - source_cursor,
+                        start=category_map.destination_start + (source_cursor - category_source_start),
+                    )
+                )
+                source_cursor = range_end
+
+            if source_cursor == source_end:
+                break
+
+        if source_cursor < source_end:
+            destination_ranges.append(
+                Range(
+                    length=range_end - source_cursor,
+                    start=source_cursor,
+                )
+            )
+
+    return destination_ranges
 
 
-def calculate_seed_location(*, almanac: Almanac, seed: int) -> int:
-    soil = get_destination_value(category_maps=almanac.seed_to_soil, source=seed)
-    fertilizer = get_destination_value(category_maps=almanac.soil_to_fertilizer, source=soil)
-    water = get_destination_value(category_maps=almanac.fertilizer_to_water, source=fertilizer)
-    light = get_destination_value(category_maps=almanac.water_to_light, source=water)
-    temperature = get_destination_value(category_maps=almanac.light_to_temperature, source=light)
-    humidity = get_destination_value(category_maps=almanac.temperature_to_humidity, source=temperature)
-    location = get_destination_value(category_maps=almanac.humidity_to_location, source=humidity)
+def calculate_seed_location(*, almanac: Almanac) -> int:
+    soil_ranges = get_destination_ranges(category_maps=almanac.seed_to_soil, source_ranges=almanac.seed_ranges)
+    fertilizer_ranges = get_destination_ranges(category_maps=almanac.soil_to_fertilizer, source_ranges=soil_ranges)
+    water_ranges = get_destination_ranges(category_maps=almanac.fertilizer_to_water, source_ranges=fertilizer_ranges)
+    light_ranges = get_destination_ranges(category_maps=almanac.water_to_light, source_ranges=water_ranges)
+    temperature_ranges = get_destination_ranges(category_maps=almanac.light_to_temperature, source_ranges=light_ranges)
+    humidity_ranges = get_destination_ranges(category_maps=almanac.temperature_to_humidity, source_ranges=temperature_ranges)
+    location_ranges = get_destination_ranges(category_maps=almanac.humidity_to_location, source_ranges=humidity_ranges)
 
-    return location
+    return location_ranges[0].start
 
 
 def solution(lines: Sequence[str], /) -> int:
     almanac = parse_almanac(lines=lines)
-    print(almanac)
-
-    # min_location = None
-    # for i in range(0, len(almanac.seeds), 2):
-    #     seed_start = almanac.seeds[i]
-    #     seed_length = almanac.seeds[i + 1]
-
-    #     for seed in range(seed_start, seed_start + seed_length):
-    #         location = calculate_seed_location(almanac=almanac, seed=seed)
-    #         if min_location is None:
-    #             min_location = location
-    #         else:
-    #             min_location = min(location, min_location)
-
-    # return min_location
+    return calculate_seed_location(almanac=almanac)
 
 
 def main():
