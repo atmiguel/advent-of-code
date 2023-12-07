@@ -1,68 +1,100 @@
 from dataclasses import dataclass
-import functools
 import parsy
-from typing import Sequence
+from typing import Sequence, Tuple
 
 from adventofcode.helpers import executor, parsers
 
+CARD_LETTERS = 'AKQJT98765432'
+SCORES_BY_CARD_LETTER = {
+    letter: len(CARD_LETTERS) - i
+    for i, letter in enumerate(CARD_LETTERS)
+}
 
-TIMES_LINE = (
-    parsy.string('Time:')
-    .then(parsers.SPACES)
-    .then(parsers.NUMBER_LIST)
+HAND_TYPES = (
+    (5,),             # Five of a kind
+    (1, 4),           # Four of a kind
+    (2, 3),           # Full house
+    (1, 1, 3),        # Three of a kind
+    (1, 2, 2),        # Two pair
+    (1, 1, 1, 2),     # One pair
+    (1, 1, 1, 1, 1),  # High card
 )
-DISTANCES_LINE = (
-    parsy.string('Distance:')
-    .then(parsers.SPACES)
-    .then(parsers.NUMBER_LIST)
+SCORES_BY_HAND_TYPE = {
+    hand_type: len(HAND_TYPES) - i
+    for i, hand_type in enumerate(HAND_TYPES)
+}
+
+CARD = parsy.regex(rf'[{CARD_LETTERS}]')
+HAND = CARD.times(5).concat()
+
+HAND_LINE = parsy.seq(
+    HAND.skip(parsers.SPACES),
+    parsers.NUMBER
 )
 
-CONTENT = parsy.seq(
-    TIMES_LINE.skip(parsers.NEWLINE),
-    DISTANCES_LINE.skip(parsers.NEWLINE.many())
+CONTENT = (
+    HAND_LINE
+    .sep_by(parsers.NEWLINE)
+    .skip(parsers.NEWLINES)
 )
 
 
 @dataclass(frozen=True, kw_only=True)
-class Race:
-    distance: int
-    time: int
+class Hand:
+    bid: int
+    cards: str
 
 
-def parse_races(*, content: str) -> Sequence[Race]:
-    times, distances = CONTENT.parse(content)
-    assert len(times) == len(distances)
+def parse_hands(*, content: str) -> Sequence[Hand]:
+    hands = CONTENT.parse(content)
 
     return tuple(
-        Race(distance=distance, time=time)
-        for time, distance in zip(times, distances)
+        Hand(bid=bid, cards=cards)
+        for cards, bid in hands
     )
 
 
-def calculate_win_count(*, race: Race) -> int:
-    half_time = race.time // 2
-    for index in range(half_time):
-        speed = index + 1
-        remaining_time = race.time - speed
+def determine_hand_type(*, cards: str) -> Tuple:
+    counts_by_card = {}
+    for card in cards:
+        if card not in counts_by_card:
+            counts_by_card[card] = 0
 
-        if remaining_time * speed > race.distance:
-            result = (half_time - index) * 2
-            if race.time % 2 == 0:
-                result -= 1
+        counts_by_card[card] += 1
 
-            return result
+    return tuple(sorted(counts_by_card.values()))
 
-    raise Exception('expected to find result')
+
+def calculate_score(*, cards: str) -> int:
+    hand_type = determine_hand_type(cards=cards)
+
+    multiplier = 1
+    score = 0
+    for i in range(len(cards) - 1, -1, -1):
+        card = cards[i]
+        score += multiplier * SCORES_BY_CARD_LETTER[card]
+        multiplier *= 100
+
+    score += multiplier * SCORES_BY_HAND_TYPE[hand_type]
+    return score
+
+
+def calculate_total_winnings(*, hands: Sequence[Hand]) -> int:
+    scores_and_bids = list(
+        (calculate_score(cards=hand.cards), hand.bid)
+        for hand in hands
+    )
+    scores_and_bids.sort(key=lambda x: x[0], reverse=True)
+
+    return sum(
+        bid * (i + 1)
+        for i, (_, bid) in enumerate(scores_and_bids)
+    )
 
 
 def solution(content: str, /) -> int:
-    races = parse_races(content=content)
-    win_counts = tuple(
-        calculate_win_count(race=race)
-        for race in races
-    )
-
-    return functools.reduce(lambda x, y: x * y, win_counts)
+    hands = parse_hands(content=content)
+    return calculate_total_winnings(hands=hands)
 
 
 def main():
