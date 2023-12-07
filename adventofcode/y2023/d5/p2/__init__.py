@@ -2,34 +2,25 @@ from dataclasses import dataclass
 import parsy
 from typing import Sequence
 
-from adventofcode.helpers import executor
+from adventofcode.helpers import executor, parsers
 
 
-NEWLINE = parsy.string('\n')
-NEWLINES = NEWLINE.at_least(1)
-
-SPACE = parsy.string(' ')
-SPACES = SPACE.at_least(1)
-
-NUMBER = parsy.decimal_digit.at_least(1).concat().map(int)
-NUMBER_LIST = NUMBER.sep_by(SPACES)
-
-SEEDS = NUMBER.sep_by(SPACES, min=2, max=2)
-SEEDS_LINE = parsy.string('seeds: ').then(SEEDS.sep_by(SPACES))
-CATEGORY_MAPS_LINE = NUMBER.sep_by(SPACES, min=3, max=3)
+SEEDS = parsers.NUMBER.sep_by(parsers.SPACES, min=2, max=2)
+SEEDS_LINE = parsy.string('seeds: ').then(SEEDS.sep_by(parsers.SPACES))
+CATEGORY_MAPS_LINE = parsers.NUMBER.sep_by(parsers.SPACES, min=3, max=3)
 
 
 def create_maps_parser(name: str) -> parsy.Parser:
     return (
         parsy.string(f'{name} map:')
-        .then(NEWLINE)
-        .then(CATEGORY_MAPS_LINE.sep_by(NEWLINE, min=1))
-        .skip(NEWLINE.many())
+        .then(parsers.NEWLINE)
+        .then(CATEGORY_MAPS_LINE.sep_by(parsers.NEWLINE, min=1))
+        .skip(parsers.NEWLINE.many())
     )
 
 
 FILE = parsy.seq(
-    SEEDS_LINE.skip(NEWLINES),
+    SEEDS_LINE.skip(parsers.NEWLINES),
     create_maps_parser('seed-to-soil'),
     create_maps_parser('soil-to-fertilizer'),
     create_maps_parser('fertilizer-to-water'),

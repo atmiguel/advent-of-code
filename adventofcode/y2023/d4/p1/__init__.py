@@ -2,28 +2,21 @@ from dataclasses import dataclass
 import parsy
 from typing import Sequence, Set
 
-from adventofcode.helpers import executor
+from adventofcode.helpers import executor, parsers
 
-
-NUMBER = parsy.decimal_digit.at_least(1).concat().map(int)
-NUMBER_LIST = NUMBER.skip(parsy.whitespace.many()).at_least(1)
-
-COLON = parsy.string(':')
-PIPE = parsy.string('|')
-CARD = parsy.string('Card')
 
 LINE = (
-    CARD
+    parsy.string('Card')
     .then(parsy.whitespace)
-    .then(NUMBER)
-    .then(COLON)
+    .then(parsers.NUMBER)
+    .then(parsy.string(':'))
     .then(parsy.whitespace)
     .then(
         parsy.seq(
-            NUMBER_LIST
-            .skip(PIPE)
+            parsers.NUMBER_LIST
+            .skip(parsy.string('|'))
             .skip(parsy.whitespace),
-            NUMBER_LIST
+            parsers.NUMBER_LIST
         )
     )
 )
