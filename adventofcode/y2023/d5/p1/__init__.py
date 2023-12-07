@@ -66,10 +66,7 @@ def parse_category_maps(*, maps: Sequence[Sequence[int]]) -> Sequence[CategoryMa
     )
 
 
-def parse_almanac(*, lines: Sequence[str]) -> Almanac:
-    # TODO(adrian@gradient.ai, 12/05/2023): consider getting full file instead of lines
-    file_content = '\n'.join(lines)
-
+def parse_almanac(*, content: str) -> Almanac:
     (
         seeds,
         seed_to_soil_maps,
@@ -79,7 +76,7 @@ def parse_almanac(*, lines: Sequence[str]) -> Almanac:
         light_to_temperature_maps,
         temperature_to_humidity_maps,
         humidity_to_location_maps,
-    ) = FILE.parse(file_content)
+    ) = FILE.parse(content)
 
     return Almanac(
         seeds=seeds,
@@ -114,8 +111,8 @@ def calculate_seed_location(*, almanac: Almanac, seed: int) -> int:
     return location
 
 
-def solution(lines: Sequence[str], /) -> int:
-    almanac = parse_almanac(lines=lines)
+def solution(content: str, /) -> int:
+    almanac = parse_almanac(content=content)
 
     return min(
         calculate_seed_location(almanac=almanac, seed=seed)
