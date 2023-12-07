@@ -80,15 +80,15 @@ def calculate_score(*, cards: str) -> int:
 
 
 def calculate_total_winnings(*, hands: Sequence[Hand]) -> int:
-    scores_and_bids = list(
-        (calculate_score(cards=hand.cards), hand.bid)
+    scores_and_hands = list(
+        (calculate_score(cards=hand.cards), hand)
         for hand in hands
     )
-    scores_and_bids.sort(key=lambda x: x[0], reverse=True)
+    scores_and_hands.sort(key=lambda x: x[0])
 
     return sum(
-        bid * (i + 1)
-        for i, (_, bid) in enumerate(scores_and_bids)
+        hand.bid * (i + 1)
+        for i, (_, hand) in enumerate(scores_and_hands)
     )
 
 
@@ -99,4 +99,4 @@ def solution(content: str, /) -> int:
 
 def main():
     executor.execute_example(solution)
-    # executor.execute_actual(solution)
+    executor.execute_actual(solution)
