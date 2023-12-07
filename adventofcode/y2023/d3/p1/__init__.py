@@ -4,7 +4,7 @@ from typing import Sequence, Tuple, Set
 from adventofcode.helpers import executor
 
 
-Location = Tuple[int, int] # (row_index, column_index)
+Location = Tuple[int, int]  # (row_index, column_index)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -95,8 +95,8 @@ def is_part_number_near_a_symbol(*, part_number: PartNumber, symbol_locations: S
     )
 
 
-def solution(lines: Sequence[str], /) -> int:
-    grid = parse_grid(lines=lines)
+def solution(content: str, /) -> int:
+    grid = parse_grid(lines=content.split('\n'))
 
     return sum(
         part_number.value

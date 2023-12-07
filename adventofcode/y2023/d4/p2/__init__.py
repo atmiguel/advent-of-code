@@ -7,15 +7,16 @@ from adventofcode.helpers import executor, parsers
 
 LINE = (
     parsy.string('Card')
-    .then(parsy.whitespace)
+    .then(parsers.SPACES)
     .then(
         parsy.seq(
             parsers.NUMBER
             .skip(parsy.string(':'))
-            .skip(parsy.whitespace),
+            .skip(parsers.SPACES),
             parsers.NUMBER_LIST
+            .skip(parsers.SPACES)
             .skip(parsy.string('|'))
-            .skip(parsy.whitespace),
+            .skip(parsers.SPACES),
             parsers.NUMBER_LIST
         )
     )
@@ -70,10 +71,11 @@ def calculate_points(*, scratch_cards: Sequence[ScratchCard]) -> int:
     return sum(copies_by_id.values())
 
 
-def solution(lines: Sequence[str], /) -> int:
+def solution(content: str, /) -> int:
     scratch_cards = tuple(
         parse_scratch_card(line=line)
-        for line in lines
+        for line in content.split('\n')
+        if len(line) > 0
     )
 
     return calculate_points(scratch_cards=scratch_cards)

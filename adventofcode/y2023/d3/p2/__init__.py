@@ -4,7 +4,7 @@ from typing import Sequence, Tuple, Set
 from adventofcode.helpers import executor
 
 
-Location = Tuple[int, int] # (row_index, column_index)
+Location = Tuple[int, int]  # (row_index, column_index)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -100,12 +100,12 @@ def calculate_gear_ratio(*, gear_location: Location, part_numbers: Sequence[Part
     adjacent_part_numbers = get_adjacent_part_numbers(location=gear_location, part_numbers=part_numbers)
     if len(adjacent_part_numbers) != 2:
         return 0
-    
+
     return adjacent_part_numbers[0].value * adjacent_part_numbers[1].value
 
 
-def solution(lines: Sequence[str], /) -> int:
-    grid = parse_grid(lines=lines)
+def solution(content: str, /) -> int:
+    grid = parse_grid(lines=content.split('\n'))
 
     return sum(
         calculate_gear_ratio(gear_location=gear_location, part_numbers=grid.part_numbers)
