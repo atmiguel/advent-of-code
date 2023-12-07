@@ -51,10 +51,11 @@ def calculate_value(*, line: str) -> int:
     return (10 * first_digit) + last_digit
 
 
-def solution(lines: Sequence[str], /) -> int:
+def solution(content: str, /) -> int:
     return sum(
         calculate_value(line=line)
-        for line in lines
+        for line in content.split('\n')
+        if len(line) > 0
     )
 
 

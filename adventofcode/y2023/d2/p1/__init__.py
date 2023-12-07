@@ -96,10 +96,14 @@ def is_game_valid(*, game: Game) -> bool:
     )
 
 
-def solution(lines: Sequence[str], /) -> None:
+def solution(content: str, /) -> None:
     return sum(
         game.id_
-        for game in Deserializer.to_games(lines=lines)
+        for game in Deserializer.to_games(lines=(
+            line
+            for line in content.split('\n')
+            if len(line) > 0
+        ))
         if is_game_valid(game=game)
     )
 
