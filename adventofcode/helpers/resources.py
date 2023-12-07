@@ -20,9 +20,9 @@ def _find_output_directory_path(*, code_path: str) -> Path:
     return _find_resources_directory_path(code_path=code_path) / 'out'
 
 
-def _read_input_file(*, code_path: str, filename: str) -> Sequence[str]:
+def _read_input_file(*, code_path: str, filename: str) -> str:
     path = _find_input_directory_path(code_path=code_path) / filename
-    return file.read_lines(path=path)
+    return file.read_content(path=path)
 
 
 # returns output file path
@@ -33,11 +33,11 @@ def _write_output_file(*, code_path: str, content: str, filename: str) -> Path:
     return path
 
 
-def read_example(*, code_path: str) -> Sequence[str]:
+def read_example(*, code_path: str) -> str:
     return _read_input_file(code_path=code_path, filename='example.txt')
 
 
-def read_actual(*, code_path: str) -> Sequence[str]:
+def read_actual(*, code_path: str) -> str:
     return _read_input_file(code_path=code_path, filename='actual.txt')
 
 

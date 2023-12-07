@@ -2,28 +2,22 @@ from dataclasses import dataclass
 from typing import Sequence, Set, Dict
 import parsy
 
-from adventofcode.helpers import executor
+from adventofcode.helpers import executor, parsers
 
-
-NUMBER = parsy.decimal_digit.at_least(1).concat().map(int)
-NUMBER_LIST = NUMBER.skip(parsy.whitespace.many()).at_least(1)
-
-COLON = parsy.string(':')
-PIPE = parsy.string('|')
-CARD = parsy.string('Card')
 
 LINE = (
-    CARD
-    .then(parsy.whitespace)
+    parsy.string('Card')
+    .then(parsers.SPACES)
     .then(
         parsy.seq(
-            NUMBER
-            .skip(COLON)
-            .skip(parsy.whitespace),
-            NUMBER_LIST
-            .skip(PIPE)
-            .skip(parsy.whitespace),
-            NUMBER_LIST
+            parsers.NUMBER
+            .skip(parsy.string(':'))
+            .skip(parsers.SPACES),
+            parsers.NUMBER_LIST
+            .skip(parsers.SPACES)
+            .skip(parsy.string('|'))
+            .skip(parsers.SPACES),
+            parsers.NUMBER_LIST
         )
     )
 )
@@ -77,10 +71,11 @@ def calculate_points(*, scratch_cards: Sequence[ScratchCard]) -> int:
     return sum(copies_by_id.values())
 
 
-def solution(lines: Sequence[str], /) -> int:
+def solution(content: str, /) -> int:
     scratch_cards = tuple(
         parse_scratch_card(line=line)
-        for line in lines
+        for line in content.split('\n')
+        if len(line) > 0
     )
 
     return calculate_points(scratch_cards=scratch_cards)

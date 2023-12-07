@@ -1,16 +1,9 @@
 from pathlib import Path
-from typing import Sequence
 
 
-def read_lines(*, path: Path) -> Sequence[str]:
+def read_content(*, path: Path) -> str:
     with open(path, 'r') as f:
-        content = f.read()
-
-    return tuple(
-        line
-        for line in content.split('\n')
-        if len(line) > 0
-    )
+        return f.read()
 
 
 def write(*, content: str, path: Path) -> None:

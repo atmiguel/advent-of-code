@@ -19,10 +19,14 @@ def calculate_power(*, game: p1.Game) -> int:
     return max_red * max_green * max_blue
 
 
-def solution(lines: Sequence[str], /) -> None:
+def solution(content: str, /) -> None:
     return sum(
         calculate_power(game=game)
-        for game in p1.Deserializer.to_games(lines=lines)
+        for game in p1.Deserializer.to_games(lines=(
+            line
+            for line in content.split('\n')
+            if len(line) > 0
+        ))
     )
 
 
