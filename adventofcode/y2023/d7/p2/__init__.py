@@ -4,7 +4,7 @@ from typing import Sequence, Tuple
 
 from adventofcode.helpers import executor, parsers
 
-CARD_LETTERS = 'AKQJT98765432'
+CARD_LETTERS = 'AKQT98765432J'
 SCORES_BY_CARD_LETTER = {
     letter: len(CARD_LETTERS) - i
     for i, letter in enumerate(CARD_LETTERS)
@@ -62,7 +62,15 @@ def determine_hand_type(*, cards: str) -> Tuple:
 
         counts_by_card[card] += 1
 
-    return tuple(sorted(counts_by_card.values()))
+    joker_count = counts_by_card.pop('J', 0)
+
+    if joker_count == 5:
+        return (5,)
+
+    hand_type = sorted(counts_by_card.values())
+    hand_type[-1] += joker_count
+
+    return tuple(hand_type)
 
 
 def calculate_score(*, cards: str) -> int:
