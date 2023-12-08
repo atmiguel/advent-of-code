@@ -1,7 +1,7 @@
 from pathlib import Path
 
 
-def _is_root(*, path: Path) -> bool:
+def is_root(*, path: Path) -> bool:
     return path == path.parent
 
 
@@ -12,7 +12,7 @@ def _find_source_directory_path() -> Path:
     while path.name != source_directory_name:
         path = path.parent
 
-        if _is_root(path=path):
+        if is_root(path=path):
             raise Exception(f'expected to find {source_directory_name} in {__file__}')
 
     return path
