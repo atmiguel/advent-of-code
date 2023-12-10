@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import parsy
+import functools
 from typing import Sequence, Dict
 
 from adventofcode.helpers import executor, parsers
@@ -85,10 +86,20 @@ def follow_directions(*, current_node_name: str, directions: Sequence[str], node
 
 
 def are_all_end_nodes(*, node_names: Sequence[str]) -> bool:
-    return all((
+    return all(
         name.endswith('Z')
         for name in node_names
-    ))
+    )
+
+
+def get_step_count(*, current_node_name: str, destination_nodes_by_name: Dict[str, str]) -> int:
+    current = current_node_name
+    step_count = 0
+    while not current.endswith('Z'):
+        current = destination_nodes_by_name[current]
+        step_count += 1
+
+    return step_count
 
 
 def count_steps(*, destination_nodes_by_name: Dict[str, str]) -> int:
@@ -97,14 +108,15 @@ def count_steps(*, destination_nodes_by_name: Dict[str, str]) -> int:
         for name in destination_nodes_by_name.keys()
         if name.endswith('A')
     )
-    step_count = 0
-    while not are_all_end_nodes(node_names=current_node_names):
-        for i, node_name in enumerate(current_node_names):
-            current_node_names[i] = destination_nodes_by_name[node_name]
+    step_counts = [
+        get_step_count(
+            current_node_name=current_node_name,
+            destination_nodes_by_name=destination_nodes_by_name,
+        )
+        for current_node_name in current_node_names
+    ]
 
-        step_count += 1
-
-    return step_count
+    return functools.reduce(lambda x, y: x * y, step_counts)
 
 
 def calculate_destination_nodes_by_name(*, network: Network) -> Dict[str, str]:
