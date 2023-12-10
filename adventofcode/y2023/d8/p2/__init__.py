@@ -91,31 +91,41 @@ def are_all_end_nodes(*, node_names: Sequence[str]) -> bool:
     ))
 
 
-# TODO: calculate cycles, then find lowest common denominator or whatever
-def count_steps(*, network: Network) -> int:
+def count_steps(*, destination_nodes_by_name: Dict[str, str]) -> int:
     current_node_names = list(
         name
-        for name in network.nodes_by_name.keys()
+        for name in destination_nodes_by_name.keys()
         if name.endswith('A')
     )
     step_count = 0
     while not are_all_end_nodes(node_names=current_node_names):
         for i, node_name in enumerate(current_node_names):
-            next_node_name = follow_directions(
-                current_node_name=node_name,
-                directions=network.directions,
-                nodes_by_name=network.nodes_by_name,
-            )
-            current_node_names[i] = next_node_name
+            current_node_names[i] = destination_nodes_by_name[node_name]
 
-        step_count += len(network.directions)
+        step_count += 1
 
     return step_count
 
 
+def calculate_destination_nodes_by_name(*, network: Network) -> Dict[str, str]:
+    destination_nodes_by_name = {}
+    for node_name in network.nodes_by_name.keys():
+        next_node_name = follow_directions(
+            current_node_name=node_name,
+            directions=network.directions,
+            nodes_by_name=network.nodes_by_name,
+        )
+        destination_nodes_by_name[node_name] = next_node_name
+
+    return destination_nodes_by_name
+
+
 def solution(content: str, /) -> int:
     network = parse_network(content=content)
-    return count_steps(network=network)
+    destination_nodes_by_name = calculate_destination_nodes_by_name(network=network)
+    steps = count_steps(destination_nodes_by_name=destination_nodes_by_name)
+
+    return steps * len(network.directions)
 
 
 def main():
