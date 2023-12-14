@@ -185,18 +185,41 @@ def calculate_path(*, direction: Direction, grid: Grid) -> Optional[Path]:
     return Path(steps=steps)
 
 
+def find_top_left_step(*, path: Path) -> Step:
+    result = path.steps[0]
+    for step in path.steps:
+        if step.location[0] > result.location[0]:
+            pass
+        elif step.location[0] < result.location[0]:
+            result = step
+        else:  # equal row
+            if step.location[1] < result.location[1]:
+                result = step
+
+    return result
+
+
 def solution(content: str, /) -> int:
     grid = parse_grid(content=content)
 
-    paths: Sequence[Path] = []
     for direction in ('up', 'down', 'left', 'right'):
         path = calculate_path(
             direction=direction,
             grid=grid,
         )
 
-        if path is not None:
-            paths.append(path)
+        if path is None:
+            continue
+
+        top_left_step = find_top_left_step(path=path)
+        if top_left_step.direction != 'right':
+            continue
+
+        print(top_left_step)
+        # TODO: also get step index
+        # then follow steps
+        # always looking "right" and recording all the locations up till hitting a path cell
+        # by using sets
 
 
 def main():
