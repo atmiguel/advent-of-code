@@ -188,16 +188,15 @@ def calculate_path(*, direction: Direction, grid: Grid) -> Optional[Path]:
 def solution(content: str, /) -> int:
     grid = parse_grid(content=content)
 
+    paths: Sequence[Path] = []
     for direction in ('up', 'down', 'left', 'right'):
         path = calculate_path(
             direction=direction,
             grid=grid,
         )
 
-        if path is None:
-            continue
-
-        print(path)
+        if path is not None:
+            paths.append(path)
 
 
 def main():
