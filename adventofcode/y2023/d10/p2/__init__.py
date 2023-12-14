@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import math
 import parsy
 from typing import Sequence, Tuple, Optional, Literal, Union
 
@@ -152,8 +151,19 @@ def calculate_next_step(*, grid: Grid, previous_step: Step) -> Optional[Step]:
     if not is_location_in_grid(grid=grid, location=next_location):
         return None
 
+    if next_location == grid.start:
+        return Step(
+            direction='down',  # doesn't matter because we're back at the start
+            location=next_location,
+        )
+
     pipe = grid.pipes[next_location[0]][next_location[1]]
+    if pipe is None:
+        return None
+
     next_direction = calculate_next_direction(pipe=pipe, previous_direction=previous_step.direction)
+    if next_direction is None:
+        return None
 
     return Step(
         direction=next_direction,
@@ -192,4 +202,4 @@ def solution(content: str, /) -> int:
 
 def main():
     executor.execute_example(solution)
-    # executor.execute_actual(solution)
+    executor.execute_actual(solution)
