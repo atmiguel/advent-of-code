@@ -52,16 +52,48 @@ def find_empty_indices(*, image: Image, galaxy_index: int) -> Set[int]:
     ])
 
 
-def solution(content: str, /) -> int:
-    image = parse_image(content=content)
-
+def insert_space_between_galaxies(*, image: Image) -> Image:
     empty_row_indices = find_empty_indices(image=image, galaxy_index=0)
     empty_column_indices = find_empty_indices(image=image, galaxy_index=1)
-    print(empty_row_indices)
-    print(empty_column_indices)
-    print(image)
+
+    new_galaxies: Set[Location] = set()
+    for galaxy in image.galaxies:
+        row_index, column_index = galaxy
+
+        row_index_diff = sum(
+            1
+            for index in empty_row_indices
+            if row_index > index
+        )
+        column_index_diff = sum(
+            1
+            for index in empty_column_indices
+            if column_index > index
+        )
+
+        new_galaxies.add((
+            row_index + row_index_diff,
+            column_index + column_index_diff,
+        ))
+
+    return Image(galaxies=new_galaxies)
+
+
+def calculate_distance_between_galaxies(*, image: Image) -> int:
+    return sum(
+        abs(galaxy_a[0] - galaxy_b[0]) + abs(galaxy_a[1] - galaxy_b[1])
+        for galaxy_a in image.galaxies
+        for galaxy_b in image.galaxies
+    ) // 2
+
+
+def solution(content: str, /) -> int:
+    image = parse_image(content=content)
+    spaced_image = insert_space_between_galaxies(image=image)
+
+    return calculate_distance_between_galaxies(image=spaced_image)
 
 
 def main():
     executor.execute_example(solution)
-    # executor.execute_actual(solution)
+    executor.execute_actual(solution)
