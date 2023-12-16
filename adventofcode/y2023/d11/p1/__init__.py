@@ -38,8 +38,27 @@ def parse_image(*, content: str) -> Image:
     return Image(galaxies=galaxies)
 
 
+def find_empty_indices(*, image: Image, galaxy_index: int) -> Set[int]:
+    non_empty_indices = set([
+        galaxy[galaxy_index]
+        for galaxy in image.galaxies
+    ])
+    max_index = max(non_empty_indices)
+
+    return set([
+        index
+        for index in range(max_index)
+        if index not in non_empty_indices
+    ])
+
+
 def solution(content: str, /) -> int:
     image = parse_image(content=content)
+
+    empty_row_indices = find_empty_indices(image=image, galaxy_index=0)
+    empty_column_indices = find_empty_indices(image=image, galaxy_index=1)
+    print(empty_row_indices)
+    print(empty_column_indices)
     print(image)
 
 
