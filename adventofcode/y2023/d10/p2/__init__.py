@@ -202,31 +202,33 @@ def find_top_left_step(*, path: Path) -> Tuple[int, Step]:
     return result_index, result
 
 
-def check_right(
+def get_right_turn(*, direction: Direction) -> Direction:
+    match direction:
+        case 'up':
+            return 'right'
+        case 'down':
+            return 'left'
+        case 'left':
+            return 'up'
+        case 'right':
+            return 'down'
+        case _:
+            raise Exception(f'unexpected direction {direction}')
+
+
+def find_inner_locations(
     *,
     direction: Direction,
     grid: Grid,
     location: Location,
     path_locations: Set[Location],
 ) -> Set[Location]:
-    match direction:
-        case 'up':
-            check_direction = 'right'
-        case 'down':
-            check_direction = 'left'
-        case 'left':
-            check_direction = 'up'
-        case 'right':
-            check_direction = 'down'
-        case _:
-            raise Exception(f'unexpected direction {direction}')
-
     inner_locations: Set[Location] = set()
     next_location = location
     while True:
         next_location = calculate_next_location(
             step=Step(
-                direction=check_direction,
+                direction=direction,
                 location=next_location,
             )
         )
@@ -238,6 +240,20 @@ def check_right(
         inner_locations.add(next_location)
 
     return inner_locations
+
+
+def is_left_turn(*, last_direction: Direction, next_direction: Direction) -> bool:
+    match last_direction:
+        case 'up':
+            return next_direction == 'left'
+        case 'down':
+            return next_direction == 'right'
+        case 'left':
+            return next_direction == 'down'
+        case 'right':
+            return next_direction == 'up'
+        case _:
+            raise Exception(f'unexpected direction {last_direction}')
 
 
 def follow_steps(*, grid: Grid, path: Path, top_left_step_index: int) -> Set[Location]:
@@ -253,13 +269,24 @@ def follow_steps(*, grid: Grid, path: Path, top_left_step_index: int) -> Set[Loc
     for index in indexes:
         step = path.steps[index]
         inner_locations.update(
-            check_right(
-                direction=last_direction,
+            find_inner_locations(
+                direction=get_right_turn(direction=last_direction),
                 grid=grid,
                 location=step.location,
                 path_locations=path_locations,
             )
         )
+        if is_left_turn(last_direction=last_direction, next_direction=step.direction):
+            # if turning left, then check forward too
+            inner_locations.update(
+                find_inner_locations(
+                    direction=last_direction,
+                    grid=grid,
+                    location=step.location,
+                    path_locations=path_locations,
+                )
+            )
+
         last_direction = step.direction
 
     return inner_locations
