@@ -51,7 +51,7 @@ def find_empty_indices(*, image: Image, galaxy_index: int) -> Set[int]:
     ])
 
 
-def insert_space_between_galaxies(*, image: Image) -> Image:
+def insert_space_between_galaxies(*, image: Image, space: int) -> Image:
     empty_row_indices = find_empty_indices(image=image, galaxy_index=0)
     empty_column_indices = find_empty_indices(image=image, galaxy_index=1)
 
@@ -60,12 +60,12 @@ def insert_space_between_galaxies(*, image: Image) -> Image:
         row_index, column_index = galaxy
 
         row_index_diff = sum(
-            1
+            space - 1
             for index in empty_row_indices
             if row_index > index
         )
         column_index_diff = sum(
-            1
+            space - 1
             for index in empty_column_indices
             if column_index > index
         )
@@ -88,7 +88,7 @@ def calculate_distance_between_galaxies(*, image: Image) -> int:
 
 def solution(content: str, /) -> int:
     image = parse_image(content=content)
-    spaced_image = insert_space_between_galaxies(image=image)
+    spaced_image = insert_space_between_galaxies(image=image, space=1_000_000)
 
     return calculate_distance_between_galaxies(image=spaced_image)
 
