@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import parsy
-from typing import Sequence, Tuple, Optional, Literal, Union
+from typing import Sequence, Tuple, Optional, Literal, Union, Set
 
 from adventofcode.helpers import executor, parsers
 
@@ -185,18 +185,84 @@ def calculate_path(*, direction: Direction, grid: Grid) -> Optional[Path]:
     return Path(steps=steps)
 
 
-def find_top_left_step(*, path: Path) -> Step:
-    result = path.steps[0]
-    for step in path.steps:
+def find_top_left_step(*, path: Path) -> Tuple[int, Step]:
+    result_index = 0
+    result = path.steps[result_index]
+    for index, step in enumerate(path.steps):
         if step.location[0] > result.location[0]:
             pass
         elif step.location[0] < result.location[0]:
+            result_index = index
             result = step
         else:  # equal row
             if step.location[1] < result.location[1]:
+                result_index = index
                 result = step
 
-    return result
+    return result_index, result
+
+
+def check_right(
+    *,
+    direction: Direction,
+    grid: Grid,
+    location: Location,
+    path_locations: Set[Location],
+) -> Set[Location]:
+    match direction:
+        case 'up':
+            check_direction = 'right'
+        case 'down':
+            check_direction = 'left'
+        case 'left':
+            check_direction = 'up'
+        case 'right':
+            check_direction = 'down'
+        case _:
+            raise Exception(f'unexpected direction {direction}')
+
+    inner_locations: Set[Location] = set()
+    next_location = location
+    while True:
+        next_location = calculate_next_location(
+            step=Step(
+                direction=check_direction,
+                location=next_location,
+            )
+        )
+        if not is_location_in_grid(grid=grid, location=next_location):
+            break
+        if next_location in path_locations:
+            break
+
+        inner_locations.add(next_location)
+
+    return inner_locations
+
+
+def follow_steps(*, grid: Grid, path: Path, top_left_step_index: int) -> Set[Location]:
+    path_locations = set([
+        step.location
+        for step in path.steps
+    ])
+    indexes = [i for i in range(top_left_step_index, len(path.steps))] + \
+        [i for i in range(top_left_step_index)]
+
+    inner_locations: Set[Location] = set()
+    last_direction = 'up'
+    for index in indexes:
+        step = path.steps[index]
+        inner_locations.update(
+            check_right(
+                direction=last_direction,
+                grid=grid,
+                location=step.location,
+                path_locations=path_locations,
+            )
+        )
+        last_direction = step.direction
+
+    return inner_locations
 
 
 def solution(content: str, /) -> int:
@@ -211,15 +277,12 @@ def solution(content: str, /) -> int:
         if path is None:
             continue
 
-        top_left_step = find_top_left_step(path=path)
+        top_left_step_index, top_left_step = find_top_left_step(path=path)
         if top_left_step.direction != 'right':
             continue
 
-        print(top_left_step)
-        # TODO: also get step index
-        # then follow steps
-        # always looking "right" and recording all the locations up till hitting a path cell
-        # by using sets
+        inner_locations = follow_steps(grid=grid, path=path, top_left_step_index=top_left_step_index)
+        return len(inner_locations)
 
 
 def main():
