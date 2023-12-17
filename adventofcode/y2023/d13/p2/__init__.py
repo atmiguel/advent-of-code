@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import parsy
-from typing import Sequence 
+from typing import Sequence, Optional
 
 from adventofcode.helpers import executor, parsers
 
@@ -71,15 +71,42 @@ def find_reflection_column(*, field: Field) -> int:
     return 0
 
 
+def generate_field(*, field: Field):
+    for row_index, row in enumerate(field.rows):
+        for column_index, cell in enumerate(row):
+            match cell:
+                case '#':
+                    new_cell = '.'
+                case '.':
+                    new_cell = '#'
+                case _:
+                    raise Exception('unexpected cell')
+
+            new_row = f'{row[:column_index]}{new_cell}{row[column_index + 1:]}'
+            new_rows = field.rows[:row_index] + [new_row] + field.rows[row_index + 1:]
+
+            yield Field(rows=new_rows)
+
+
 def solution(content: str, /) -> int:
     fields = parse_fields(content=content)
 
     total = 0
     for field in fields:
-        reflection_row = find_reflection_row(field=field)
-        reflection_column = find_reflection_column(field=field)
+        original_reflection_row = find_reflection_row(field=field)
+        original_reflection_column = find_reflection_column(field=field)
 
-        total += 100 * reflection_row + reflection_column
+        for generated_field in generate_field(field=field):
+            reflection_row = find_reflection_row(field=generated_field)
+            reflection_column = find_reflection_column(field=generated_field)
+
+            if reflection_row > 0 and reflection_row != original_reflection_row:
+                total += 100 * reflection_row
+                break
+
+            if reflection_column > 0 and reflection_column != original_reflection_column:
+                total += reflection_column
+                break
 
     return total
 
