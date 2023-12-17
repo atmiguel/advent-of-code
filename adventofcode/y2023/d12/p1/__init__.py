@@ -44,7 +44,8 @@ def calculate_arrangements(
                 damage_count += 1
 
                 if len(damaged_groups) == 0:
-                    continue
+                    # invalid configuration
+                    return 0
 
                 if damage_count > damaged_groups[0]:
                     # invalid configuration
