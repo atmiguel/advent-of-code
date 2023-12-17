@@ -28,12 +28,62 @@ def parse_fields(*, content: str) -> Sequence[Field]:
     ]
 
 
+def find_reflection_row(*, field: Field) -> int:
+    for index in range(len(field.rows) - 1):
+        top_index = index
+        bottom_index = index + 1
+
+        while field.rows[top_index] == field.rows[bottom_index]:
+            top_index -= 1
+            bottom_index += 1
+
+            if top_index < 0:
+                return index + 1
+
+            if bottom_index >= len(field.rows):
+                return index + 1
+
+    return 0
+
+
+def get_column(*, field: Field, index: int) -> str:
+    return ''.join([
+        row[index]
+        for row in field.rows
+    ])
+
+
+def find_reflection_column(*, field: Field) -> int:
+    for index in range(len(field.rows[0]) - 1):
+        left_index = index
+        right_index = index + 1
+
+        while get_column(field=field, index=left_index) == get_column(field=field, index=right_index):
+            left_index -= 1
+            right_index += 1
+
+            if left_index < 0:
+                return index + 1
+
+            if right_index >= len(field.rows[0]):
+                return index + 1
+
+    return 0
+
+
 def solution(content: str, /) -> int:
     fields = parse_fields(content=content)
 
-    print(fields)
+    total = 0
+    for field in fields:
+        reflection_row = find_reflection_row(field=field)
+        reflection_column = find_reflection_column(field=field)
+
+        total += 100 * reflection_row + reflection_column
+
+    return total
 
 
 def main():
     executor.execute_example(solution)
-    # executor.execute_actual(solution)
+    executor.execute_actual(solution)
