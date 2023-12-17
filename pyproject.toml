@@ -38,6 +38,8 @@ mypy = "1.7.1"
 2023_11_2 = "adventofcode.y2023.d11.p2:main"
 2023_12_1 = "adventofcode.y2023.d12.p1:main"
 2023_12_2 = "adventofcode.y2023.d12.p2:main"
+2023_13_1 = "adventofcode.y2023.d13.p1:main"
+2023_13_2 = "adventofcode.y2023.d13.p2:main"
 
 # https://blog.wolt.com/engineering/2021/09/30/professional-grade-mypy-configuration/
 [tool.mypy]
