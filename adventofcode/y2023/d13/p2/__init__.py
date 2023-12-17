@@ -28,7 +28,8 @@ def parse_fields(*, content: str) -> Sequence[Field]:
     ]
 
 
-def find_reflection_row(*, field: Field) -> int:
+def find_reflection_rows(*, field: Field) -> Sequence[int]:
+    results = []
     for index in range(len(field.rows) - 1):
         top_index = index
         bottom_index = index + 1
@@ -37,13 +38,11 @@ def find_reflection_row(*, field: Field) -> int:
             top_index -= 1
             bottom_index += 1
 
-            if top_index < 0:
-                return index + 1
+            if top_index < 0 or bottom_index >= len(field.rows):
+                results.append(index + 1)
+                break
 
-            if bottom_index >= len(field.rows):
-                return index + 1
-
-    return 0
+    return results
 
 
 def get_column(*, field: Field, index: int) -> str:
@@ -53,7 +52,8 @@ def get_column(*, field: Field, index: int) -> str:
     ])
 
 
-def find_reflection_column(*, field: Field) -> int:
+def find_reflection_columns(*, field: Field) -> Sequence[int]:
+    results = []
     for index in range(len(field.rows[0]) - 1):
         left_index = index
         right_index = index + 1
@@ -62,13 +62,11 @@ def find_reflection_column(*, field: Field) -> int:
             left_index -= 1
             right_index += 1
 
-            if left_index < 0:
-                return index + 1
+            if left_index < 0 or right_index >= len(field.rows[0]):
+                results.append(index + 1)
+                break
 
-            if right_index >= len(field.rows[0]):
-                return index + 1
-
-    return 0
+    return results
 
 
 def generate_field(*, field: Field):
@@ -93,20 +91,30 @@ def solution(content: str, /) -> int:
 
     total = 0
     for field in fields:
-        original_reflection_row = find_reflection_row(field=field)
-        original_reflection_column = find_reflection_column(field=field)
+        original_reflection_rows = set(find_reflection_rows(field=field))
+        original_reflection_columns = set(find_reflection_columns(field=field))
 
         for generated_field in generate_field(field=field):
-            reflection_row = find_reflection_row(field=generated_field)
-            reflection_column = find_reflection_column(field=generated_field)
+            reflection_rows = find_reflection_rows(field=generated_field)
+            reflection_columns = find_reflection_columns(field=generated_field)
 
-            if reflection_row > 0 and reflection_row != original_reflection_row:
-                total += 100 * reflection_row
-                break
+            should_break = False
+            for reflection_row in reflection_rows:
+                if reflection_row > 0 and reflection_row not in original_reflection_rows:
+                    total += 100 * reflection_row
+                    should_break = True
+                    break
 
-            if reflection_column > 0 and reflection_column != original_reflection_column:
-                total += reflection_column
+            for reflection_column in reflection_columns:
+                if reflection_column > 0 and reflection_column not in original_reflection_columns:
+                    total += reflection_column
+                    should_break = True
+                    break
+
+            if should_break:
                 break
+        else:
+            raise Exception('failed to find new reflection')
 
     return total
 
