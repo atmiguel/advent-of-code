@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import parsy
-from typing import Sequence
+from typing import Sequence, Optional
 
 from adventofcode.helpers import executor, parsers
 
@@ -32,14 +32,95 @@ def parse_spring_rows(*, content: str) -> Sequence[SpringRow]:
     ]
 
 
+def calculate_arrangements(
+        *,
+        springs: str,
+        damaged_groups: Sequence[int],
+        damage_count: Optional[int] = 0,
+) -> int:
+    for index, spring in enumerate(springs):
+        match spring:
+            case '#':
+                damage_count += 1
+
+                if len(damaged_groups) == 0:
+                    continue
+
+                if damage_count > damaged_groups[0]:
+                    # invalid configuration
+                    return 0
+            case '.':
+                if damage_count == 0:
+                    continue
+
+                if len(damaged_groups) == 0:
+                    continue
+
+                if damage_count != damaged_groups[0]:
+                    # invalid configuration
+                    return 0
+
+                # good, recurse down
+                return calculate_arrangements(
+                    damaged_groups=damaged_groups[1:],
+                    springs=springs[index + 1:],
+                )
+            case '?':
+                if len(damaged_groups) == 0:
+                    return calculate_arrangements(
+                        damage_count=damage_count,
+                        damaged_groups=damaged_groups,
+                        springs=f'.{springs[index + 1:]}',
+                    )
+
+                if damage_count == damaged_groups[0]:
+                    return calculate_arrangements(
+                        damage_count=0,
+                        damaged_groups=damaged_groups[1:],
+                        springs=f'.{springs[index + 1:]}',
+                    )
+
+                value_if_damaged = calculate_arrangements(
+                    damage_count=damage_count,
+                    damaged_groups=damaged_groups,
+                    springs=f'#{springs[index + 1:]}',
+                )
+                value_if_not_damaged = calculate_arrangements(
+                    damage_count=damage_count,
+                    damaged_groups=damaged_groups,
+                    springs=f'.{springs[index + 1:]}',
+                )
+
+                return value_if_damaged + value_if_not_damaged
+            case _:
+                raise Exception(f'unexpected spring: {spring}')
+
+    if len(damaged_groups) == 0:
+        return 1
+
+    if len(damaged_groups) > 1:
+        # invalid
+        return 0
+
+    if damage_count != damaged_groups[0]:
+        # invalid
+        return 0
+
+    return 1
+
+
 def solution(content: str, /) -> int:
     spring_rows = parse_spring_rows(content=content)
-    # image = parse_image(content=content)
-    # spaced_image = insert_space_between_galaxies(image=image)
 
-    # return calculate_distance_between_galaxies(image=spaced_image)
+    return sum(
+        calculate_arrangements(
+            springs=spring_row.springs,
+            damaged_groups=spring_row.damaged_groups,
+        )
+        for spring_row in spring_rows
+    )
 
 
 def main():
     executor.execute_example(solution)
-    # executor.execute_actual(solution)
+    executor.execute_actual(solution)
