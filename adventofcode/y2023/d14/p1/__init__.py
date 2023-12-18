@@ -1,89 +1,67 @@
-from dataclasses import dataclass
+import copy
 import parsy
-from typing import Sequence 
+from typing import Sequence, Tuple
 
 from adventofcode.helpers import executor, parsers
 
-ASH_OR_ROCK = parsy.regex(r'[\.#]')
-ROW = ASH_OR_ROCK.at_least(1).concat()
-FIELD = ROW.sep_by(parsers.NEWLINE)
+ROCK = parsy.regex(r'[\.#O]')
+ROW = ROCK.at_least(1)
 
 CONTENT = (
-    FIELD.sep_by(parsers.NEWLINE.times(2))
+    ROW.sep_by(parsers.NEWLINE)
     .skip(parsers.NEWLINE.many())
 )
 
-
-@dataclass(frozen=True, kw_only=True)
-class Field:
-    rows: Sequence[str]
+Location = Tuple[int, int]
 
 
-def parse_fields(*, content: str) -> Sequence[Field]:
-    fields = CONTENT.parse(content)
-
-    return [
-        Field(rows=field)
-        for field in fields
-    ]
+def print_rows(rows: Sequence[Sequence[str]], /) -> None:
+    for row in rows:
+        print(''.join(row))
+    print()
 
 
-def find_reflection_row(*, field: Field) -> int:
-    for index in range(len(field.rows) - 1):
-        top_index = index
-        bottom_index = index + 1
+def roll_rock_north(*, rows: Sequence[Sequence[str]], rock_location: Location) -> Sequence[Sequence[str]]:
+    north_rock_row_location = (rock_location[0] - 1, rock_location[1])
+    if north_rock_row_location[0] < 0:
+        return rows
 
-        while field.rows[top_index] == field.rows[bottom_index]:
-            top_index -= 1
-            bottom_index += 1
+    north_rock = rows[north_rock_row_location[0]][north_rock_row_location[1]]
+    match north_rock:
+        case '.':
+            new_rows = copy.deepcopy(rows)
+            new_rows[rock_location[0]][rock_location[1]] = '.'
+            new_rows[north_rock_row_location[0]][north_rock_row_location[1]] = 'O'
 
-            if top_index < 0:
-                return index + 1
-
-            if bottom_index >= len(field.rows):
-                return index + 1
-
-    return 0
-
-
-def get_column(*, field: Field, index: int) -> str:
-    return ''.join([
-        row[index]
-        for row in field.rows
-    ])
+            return roll_rock_north(rows=new_rows, rock_location=north_rock_row_location)
+        case '#' | 'O':
+            return rows
+        case _:
+            raise Exception('unexpected rock')
 
 
-def find_reflection_column(*, field: Field) -> int:
-    for index in range(len(field.rows[0]) - 1):
-        left_index = index
-        right_index = index + 1
+def roll_rocks_north(*, rows: Sequence[str]) -> Sequence[str]:
+    new_rows = rows
+    for row_index, row in enumerate(rows):
+        for column_index, cell in enumerate(row):
+            match cell:
+                case '.' | '#':
+                    pass
+                case 'O':
+                    new_rows = roll_rock_north(rows=new_rows, rock_location=(row_index, column_index))
+                case _:
+                    raise Exception('unexpected cell')
 
-        while get_column(field=field, index=left_index) == get_column(field=field, index=right_index):
-            left_index -= 1
-            right_index += 1
-
-            if left_index < 0:
-                return index + 1
-
-            if right_index >= len(field.rows[0]):
-                return index + 1
-
-    return 0
+    return new_rows
 
 
 def solution(content: str, /) -> int:
-    fields = parse_fields(content=content)
+    rows = CONTENT.parse(content)
+    new_rows = roll_rocks_north(rows=rows)
 
-    total = 0
-    for field in fields:
-        reflection_row = find_reflection_row(field=field)
-        reflection_column = find_reflection_column(field=field)
-
-        total += 100 * reflection_row + reflection_column
-
-    return total
+    print_rows(new_rows)
 
 
 def main():
     executor.execute_example(solution)
-    executor.execute_actual(solution)
+    # executor.execute_actual(solution)
