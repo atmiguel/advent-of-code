@@ -40,7 +40,7 @@ def roll_rock_north(*, rows: Sequence[Sequence[str]], rock_location: Location) -
             raise Exception('unexpected rock')
 
 
-def roll_rocks_north(*, rows: Sequence[str]) -> Sequence[str]:
+def roll_rocks_north(*, rows: Sequence[Sequence[str]]) -> Sequence[Sequence[str]]:
     new_rows = rows
     for row_index, row in enumerate(rows):
         for column_index, cell in enumerate(row):
@@ -55,11 +55,18 @@ def roll_rocks_north(*, rows: Sequence[str]) -> Sequence[str]:
     return new_rows
 
 
+def count_rocks(*, rows: Sequence[Sequence[str]]) -> int:
+    return sum(
+        row.count('O') * (len(rows) - index)
+        for index, row in enumerate(rows)
+    )
+
+
 def solution(content: str, /) -> int:
     rows = CONTENT.parse(content)
     new_rows = roll_rocks_north(rows=rows)
 
-    print_rows(new_rows)
+    return count_rocks(rows=new_rows)
 
 
 def main():
