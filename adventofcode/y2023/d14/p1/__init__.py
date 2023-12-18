@@ -71,4 +71,4 @@ def solution(content: str, /) -> int:
 
 def main():
     executor.execute_example(solution)
-    # executor.execute_actual(solution)
+    executor.execute_actual(solution)
