@@ -15,47 +15,6 @@ Location = Tuple[int, int]
 Grid = Sequence[Sequence[str]]
 
 
-# def roll_rock_north(*, rows: Sequence[Sequence[str]], rock_location: Location) -> Sequence[Sequence[str]]:
-#     north_rock_row_location = (rock_location[0] - 1, rock_location[1])
-#     if north_rock_row_location[0] < 0:
-#         return rows
-
-#     north_rock = rows[north_rock_row_location[0]][north_rock_row_location[1]]
-#     match north_rock:
-#         case '.':
-#             new_rows = copy.deepcopy(rows)
-#             new_rows[rock_location[0]][rock_location[1]] = '.'
-#             new_rows[north_rock_row_location[0]][north_rock_row_location[1]] = 'O'
-
-#             return roll_rock_north(rows=new_rows, rock_location=north_rock_row_location)
-#         case '#' | 'O':
-#             return rows
-#         case _:
-#             raise Exception('unexpected rock')
-
-
-# def roll_rocks_north(*, rows: Sequence[Sequence[str]]) -> Sequence[Sequence[str]]:
-#     new_rows = rows
-#     for row_index, row in enumerate(rows):
-#         for column_index, cell in enumerate(row):
-#             match cell:
-#                 case '.' | '#':
-#                     pass
-#                 case 'O':
-#                     new_rows = roll_rock_north(rows=new_rows, rock_location=(row_index, column_index))
-#                 case _:
-#                     raise Exception('unexpected cell')
-
-#     return new_rows
-
-
-# def count_rocks(*, rows: Sequence[Sequence[str]]) -> int:
-#     return sum(
-#         row.count('O') * (len(rows) - index)
-#         for index, row in enumerate(rows)
-#     )
-
-
 def find_left(values: Sequence[str], /, *, char: str, start: int, stop: int) -> int:
     try:
         return values.index(char, start, stop)
@@ -72,7 +31,7 @@ def find_right(values: Sequence[str], /, *, char: str, start: int, stop: int) ->
 
 
 def roll_rocks_west(*, grid: Grid) -> None:
-    for row_index, row in enumerate(grid):
+    for row in grid:
         solid_rocks = [index for index, char in enumerate(row) if char == '#'] + [len(row)]
 
         for index, solid_rock in enumerate(solid_rocks):
@@ -93,7 +52,7 @@ def roll_rocks_west(*, grid: Grid) -> None:
 
 
 def roll_rocks_east(*, grid: Grid) -> None:
-    for row_index, row in enumerate(grid):
+    for row in grid:
         solid_rocks = [index for index, char in enumerate(row) if char == '#'] + [len(row)]
 
         for index, solid_rock in enumerate(solid_rocks):
@@ -113,6 +72,56 @@ def roll_rocks_east(*, grid: Grid) -> None:
                 row[rightmost_empty], row[leftmost_rock] = row[leftmost_rock], row[rightmost_empty]
 
 
+def roll_rocks_north(*, grid: Grid) -> None:
+    for column_index in range(len(grid[0])):
+        column = [grid[i][column_index] for i in range(len(grid))]
+        solid_rocks = [index for index, char in enumerate(column) if char == '#'] + [len(column)]
+
+        for solid_rock_index, solid_rock in enumerate(solid_rocks):
+            start_index = 0 if solid_rock_index == 0 else solid_rocks[solid_rock_index - 1]
+            stop_index = solid_rock
+
+            while True:
+                topmost_empty = find_left(column, char='.', start=start_index, stop=stop_index)
+                bottommost_rock = find_right(column, char='O', start=start_index, stop=stop_index)
+
+                if topmost_empty == -1 or bottommost_rock == -1:
+                    break
+
+                if topmost_empty > bottommost_rock:
+                    break
+
+                column[topmost_empty], column[bottommost_rock] = column[bottommost_rock], column[topmost_empty]
+
+        for i, cell in enumerate(column):
+            grid[i][column_index] = cell
+
+
+def roll_rocks_south(*, grid: Grid) -> None:
+    for column_index in range(len(grid[0])):
+        column = [grid[i][column_index] for i in range(len(grid))]
+        solid_rocks = [index for index, char in enumerate(column) if char == '#'] + [len(column)]
+
+        for solid_rock_index, solid_rock in enumerate(solid_rocks):
+            start_index = 0 if solid_rock_index == 0 else solid_rocks[solid_rock_index - 1]
+            stop_index = solid_rock
+
+            while True:
+                bottommost_empty = find_right(column, char='.', start=start_index, stop=stop_index)
+                topmost_rock = find_left(column, char='O', start=start_index, stop=stop_index)
+
+                if bottommost_empty == -1 or topmost_rock == -1:
+                    break
+
+                if bottommost_empty < topmost_rock:
+                    break
+
+                column[bottommost_empty], column[topmost_rock] = column[topmost_rock], column[bottommost_empty]
+
+        for i, cell in enumerate(column):
+            grid[i][column_index] = cell
+
+
 def print_grid(grid: Grid, /) -> None:
     for row in grid:
         print(''.join(row))
@@ -122,7 +131,7 @@ def print_grid(grid: Grid, /) -> None:
 def solution(content: str, /) -> int:
     grid = CONTENT.parse(content)
     print_grid(grid)
-    roll_rocks_east(grid=grid)
+    roll_rocks_south(grid=grid)
     print_grid(grid)
     # new_rows = roll_rocks_north(rows=rows)
 
