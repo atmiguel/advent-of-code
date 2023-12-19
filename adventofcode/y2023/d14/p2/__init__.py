@@ -122,22 +122,54 @@ def roll_rocks_south(*, grid: Grid) -> None:
             grid[i][column_index] = cell
 
 
+def cycle_rocks(*, grid: Grid) -> None:
+    roll_rocks_north(grid=grid)
+    roll_rocks_west(grid=grid)
+    roll_rocks_south(grid=grid)
+    roll_rocks_east(grid=grid)
+
+
+def count_rocks(*, grid: Grid) -> int:
+    return sum(
+        row.count('O') * (len(grid) - index)
+        for index, row in enumerate(grid)
+    )
+
+
 def print_grid(grid: Grid, /) -> None:
     for row in grid:
         print(''.join(row))
     print()
 
 
+def determine_pattern_length(*, values: Sequence[int]) -> int:
+    for pattern_length in range(1, 1_000):
+        for i in range(pattern_length, len(values), pattern_length):
+            if values[i] != values[i - pattern_length]:
+                break
+        else:
+            return pattern_length
+
+    raise Exception('failed to find pattern length')
+
+
 def solution(content: str, /) -> int:
     grid = CONTENT.parse(content)
-    print_grid(grid)
-    roll_rocks_south(grid=grid)
-    print_grid(grid)
-    # new_rows = roll_rocks_north(rows=rows)
 
-    # return count_rocks(rows=new_rows)
+    for _ in range(1_000):
+        cycle_rocks(grid=grid)
+
+    weights = []
+    for _ in range(1_000):
+        cycle_rocks(grid=grid)
+        weights.append(count_rocks(grid=grid))
+
+    pattern_length = determine_pattern_length(values=weights)
+    weight_index = (1_000_000_000 - 1_000 - 1) % pattern_length
+
+    return weights[weight_index]
 
 
 def main():
     executor.execute_example(solution)
-    # executor.execute_actual(solution)
+    executor.execute_actual(solution)
