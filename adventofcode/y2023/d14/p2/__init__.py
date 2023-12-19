@@ -73,7 +73,6 @@ def find_right(values: Sequence[str], /, *, char: str, start: int, stop: int) ->
 
 def roll_rocks_west(*, grid: Grid) -> None:
     for row_index, row in enumerate(grid):
-        print(f'row {row_index}')
         solid_rocks = [index for index, char in enumerate(row) if char == '#'] + [len(row)]
 
         for index, solid_rock in enumerate(solid_rocks):
@@ -90,8 +89,28 @@ def roll_rocks_west(*, grid: Grid) -> None:
                 if leftmost_empty > rightmost_rock:
                     break
 
-                print(leftmost_empty, rightmost_rock)
                 row[leftmost_empty], row[rightmost_rock] = row[rightmost_rock], row[leftmost_empty]
+
+
+def roll_rocks_east(*, grid: Grid) -> None:
+    for row_index, row in enumerate(grid):
+        solid_rocks = [index for index, char in enumerate(row) if char == '#'] + [len(row)]
+
+        for index, solid_rock in enumerate(solid_rocks):
+            start_index = 0 if index == 0 else solid_rocks[index - 1]
+            stop_index = solid_rock
+
+            while True:
+                rightmost_empty = find_right(row, char='.', start=start_index, stop=stop_index)
+                leftmost_rock = find_left(row, char='O', start=start_index, stop=stop_index)
+
+                if rightmost_empty == -1 or leftmost_rock == -1:
+                    break
+
+                if rightmost_empty < leftmost_rock:
+                    break
+
+                row[rightmost_empty], row[leftmost_rock] = row[leftmost_rock], row[rightmost_empty]
 
 
 def print_grid(grid: Grid, /) -> None:
@@ -103,7 +122,7 @@ def print_grid(grid: Grid, /) -> None:
 def solution(content: str, /) -> int:
     grid = CONTENT.parse(content)
     print_grid(grid)
-    roll_rocks_west(grid=grid)
+    roll_rocks_east(grid=grid)
     print_grid(grid)
     # new_rows = roll_rocks_north(rows=rows)
 
