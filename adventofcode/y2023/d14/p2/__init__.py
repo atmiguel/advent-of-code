@@ -56,10 +56,38 @@ Grid = Sequence[Sequence[str]]
 #     )
 
 
+def find_left(values: Sequence[str], /, *, char: str, start: int, stop: int) -> int:
+    try:
+        return values.index(char, start, stop)
+    except ValueError:
+        return -1
+
+
+def find_right(values: Sequence[str], /, *, char: str, start: int, stop: int) -> int:
+    for index in range(stop - 1, start - 1, -1):
+        if values[index] == char:
+            return index
+
+    return -1
+
+
 def roll_rocks_west(*, grid: Grid) -> None:
     for row in grid:
-        solid_rocks = [index for index, char in enumerate(row) if char == '#']
-        print(solid_rocks)
+        solid_rocks = [index for index, char in enumerate(row) if char == '#'] + [len(row)]
+
+        for index, solid_rock in enumerate(solid_rocks):
+            start_index = 0 if index == 0 else solid_rocks[index - 1]
+            stop_index = solid_rock
+
+            leftmost_empty = find_left(row, char='.', start=start_index, stop=stop_index)
+            rightmost_rock = find_right(row, char='O', start=start_index, stop=stop_index)
+
+            if leftmost_empty == -1 or rightmost_rock == -1:
+                continue
+
+            if leftmost_empty > rightmost_rock:
+                print('here')
+                row[leftmost_empty], row[rightmost_rock] = 'O', '.'
 
 
 def print_grid(grid: Grid, /) -> None:
@@ -70,7 +98,9 @@ def print_grid(grid: Grid, /) -> None:
 
 def solution(content: str, /) -> int:
     grid = CONTENT.parse(content)
+    print_grid(grid)
     roll_rocks_west(grid=grid)
+    print_grid(grid)
     # new_rows = roll_rocks_north(rows=rows)
 
     # return count_rocks(rows=new_rows)
@@ -78,4 +108,4 @@ def solution(content: str, /) -> int:
 
 def main():
     executor.execute_example(solution)
-    executor.execute_actual(solution)
+    # executor.execute_actual(solution)
