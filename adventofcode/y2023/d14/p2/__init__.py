@@ -1,5 +1,5 @@
 import parsy
-from typing import Sequence, Tuple
+from typing import Sequence
 
 from adventofcode.helpers import executor, parsers
 
@@ -11,7 +11,6 @@ CONTENT = (
     .skip(parsers.NEWLINE.many())
 )
 
-Location = Tuple[int, int]
 Grid = Sequence[Sequence[str]]
 
 
