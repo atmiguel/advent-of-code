@@ -30,55 +30,97 @@ def walk_path(*, grid: Grid, step: Step, visited_steps: Set[Step]) -> None:
     location, direction = step
     cell = grid[location[0]][location[1]]
 
-    match direction:
-        case 'up':
-            next_location = (location[0] - 1, location[1])
-        case 'down':
-            next_location = (location[0] + 1, location[1])
-        case 'left':
-            next_location = (location[0], location[1] - 1)
-        case 'right':
-            next_location = (location[0], location[1] + 1)
-        case _:
-            raise Exception('unexpected direction')
-
-    if next_location[0] < 0 or next_location[0] >= len(grid):
-        return
-    if next_location[1] < 0 or next_location[1] >= len(grid[0]):
-        return
-
+    next_directions: Sequence[Direction]
     match cell:
         case '.':
-            walk_path(
-                grid=grid,
-                step=Step((next_location, direction)),
-                visited_steps=visited_steps,
-            )
+            next_directions = [direction]
         case '|':
-            pass
+            match direction:
+                case 'up' | 'down':
+                    next_directions = [direction]
+                case 'left' | 'right':
+                    next_directions = ['up', 'down']
+                case _:
+                    raise Exception('unexpected direction')
         case '-':
-            pass
+            match direction:
+                case 'up' | 'down':
+                    next_directions = ['left', 'right']
+                case 'left' | 'right':
+                    next_directions = [direction]
+                case _:
+                    raise Exception('unexpected direction')
         case '/':
-            pass
+            match direction:
+                case 'up':
+                    next_directions = ['right']
+                case 'down':
+                    next_directions = ['left']
+                case 'left':
+                    next_directions = ['down']
+                case 'right':
+                    next_directions = ['up']
+                case _:
+                    raise Exception('unexpected direction')
         case '\\':
-            pass
+            match direction:
+                case 'up':
+                    next_directions = ['left']
+                case 'down':
+                    next_directions = ['right']
+                case 'left':
+                    next_directions = ['up']
+                case 'right':
+                    next_directions = ['down']
+                case _:
+                    raise Exception('unexpected direction')
         case _:
             raise Exception('unexpected cell')
-    pass
+
+    for next_direction in next_directions:
+        next_location: Location
+        match next_direction:
+            case 'up':
+                next_location = (location[0] - 1, location[1])
+            case 'down':
+                next_location = (location[0] + 1, location[1])
+            case 'left':
+                next_location = (location[0], location[1] - 1)
+            case 'right':
+                next_location = (location[0], location[1] + 1)
+            case _:
+                raise Exception('unexpected direction')
+
+        if next_location[0] < 0 or next_location[0] >= len(grid):
+            continue
+        if next_location[1] < 0 or next_location[1] >= len(grid[0]):
+            continue
+
+        walk_path(
+            grid=grid,
+            step=(next_location, next_direction),
+            visited_steps=visited_steps,
+        )
 
 
 def solution(content: str, /) -> int:
     grid = CONTENT.parse(content)
 
     visited_steps: Set[Step] = set()
-    print(grid)
+    walk_path(
+        grid=grid,
+        step=((0, 0), 'right'),
+        visited_steps=visited_steps,
+    )
 
-    # return sum(
-    #     calculate_hash(step)
-    #     for step in sequence
-    # )
+    visited_locations = set(
+        step[0]
+        for step in visited_steps
+    )
+
+    return len(visited_locations)
 
 
 def main():
     executor.execute_example(solution)
-    # executor.execute_actual(solution)
+    executor.execute_actual(solution)
