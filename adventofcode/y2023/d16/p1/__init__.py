@@ -2,6 +2,8 @@ import parsy
 from typing import Sequence, Literal, Union, Tuple, Set
 
 from adventofcode.helpers import executor, parsers
+import sys
+sys.setrecursionlimit(8_000)
 
 CELL = parsy.regex(r'[\.\|\-\\\/]')
 ROW = CELL.at_least(1).concat()
