@@ -144,13 +144,38 @@ def calculate_distance_grid(*, grid: Grid) -> DistanceGrid:
 
         unvisited_locations.remove(current_location)
 
+        if current_location[0] == len(grid) - 1 and current_location[1] == len(grid[0]) - 1:
+            break
+
     return distance_grid
+
+
+def print_distance_grid(*, distance_grid: DistanceGrid) -> None:
+    for row in distance_grid:
+        for direction, distance in row:
+            if direction is None:
+                char = str(distance)
+            else:
+                match direction:
+                    case 'up':
+                        char = '^'
+                    case 'down':
+                        char = 'v'
+                    case 'left':
+                        char = '<'
+                    case 'right':
+                        char = '>'
+                    case _:
+                        raise Exception('unexpected direction')
+
+            print(char, end="")
+        print()
 
 
 def solution(content: str, /) -> int:
     grid = CONTENT.parse(content)
     distance_grid = calculate_distance_grid(grid=grid)
-    print(distance_grid)
+    print_distance_grid(distance_grid=distance_grid)
 
 
 def main():
