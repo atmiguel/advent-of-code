@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import math
 from typing import Sequence, Union, Literal, Tuple, Optional, Set
 
@@ -17,22 +18,30 @@ Direction = Union[
     Literal['left'],
     Literal['right'],
 ]
-DirectedDistance = Tuple[Optional[Direction], int]
-Grid = Sequence[Sequence[int]]
-DistanceGrid = Sequence[Sequence[DirectedDistance]]
+
+
+@dataclass(frozen=True, kw_only=True)
+class Node:
+    distance: int
+    source_direction: Optional[Direction]
+    source_location: Optional[Location]
+
+
+WeightGrid = Sequence[Sequence[int]]
+NodeGrid = Sequence[Sequence[Node]]
 
 
 def find_closest_unvisited_location(
         *,
-        distance_grid: DistanceGrid,
+        node_grid: NodeGrid,
         unvisited_locations: Set[Location],
 ) -> Location:
     min_distance: int = math.inf
     min_location: Optional[Location] = None
     for location in unvisited_locations:
-        _, distance = distance_grid[location[0]][location[1]]
-        if distance < min_distance:
-            min_distance = distance
+        node = node_grid[location[0]][location[1]]
+        if node.distance < min_distance:
+            min_distance = node.distance
             min_location = location
 
     if min_location is None:
@@ -69,52 +78,53 @@ def get_next_location(*, location: Location, direction: Direction) -> Location:
             raise Exception('unexpected direction')
 
 
-def is_location_in_grid(*, location: Location, grid: Grid) -> bool:
+def is_location_in_grid(*, location: Location, weight_grid: WeightGrid) -> bool:
     if location[0] < 0:
         return False
-    if location[0] >= len(grid):
+    if location[0] >= len(weight_grid):
         return False
     if location[1] < 0:
         return False
-    if location[1] >= len(grid[0]):
+    if location[1] >= len(weight_grid[0]):
         return False
     return True
 
 
-def calculate_distance_grid(*, grid: Grid) -> DistanceGrid:
-    distance_grid: DistanceGrid = []
-    for row_index, row in enumerate(grid):
-        distance_row = []
+def calculate_node_grid(*, weight_grid: WeightGrid) -> NodeGrid:
+    node_grid: NodeGrid = []
+    for row_index, row in enumerate(weight_grid):
+        nodes = []
         for column_index in range(len(row)):
-            distance_row.append(
-                (
-                    None,
-                    0 if row_index == 0 and column_index == 0 else math.inf,
+            nodes.append(
+                Node(
+                    distance=0 if row_index == 0 and column_index == 0 else math.inf,
+                    source_direction=None,
+                    source_location=None,
                 )
             )
 
-        distance_grid.append(distance_row)
+        node_grid.append(nodes)
 
     unvisited_locations = set([
         (row_index, column_index)
-        for row_index, row in enumerate(grid)
+        for row_index, row in enumerate(weight_grid)
         for column_index in range(len(row))
     ])
 
     while len(unvisited_locations) > 0:
         current_location = find_closest_unvisited_location(
-            distance_grid=distance_grid,
+            node_grid=node_grid,
             unvisited_locations=unvisited_locations,
         )
-        _, current_distance = distance_grid[current_location[0]][current_location[1]]
-        cell_weight = grid[current_location[0]][current_location[1]]
+        current_node = node_grid[current_location[0]][current_location[1]]
+        cell_weight = weight_grid[current_location[0]][current_location[1]]
 
         for direction in ('up', 'down', 'left', 'right'):
             neighbor_location = get_next_location(
                 location=current_location,
                 direction=direction,
             )
-            if not is_location_in_grid(location=neighbor_location, grid=grid):
+            if not is_location_in_grid(location=neighbor_location, weight_grid=weight_grid):
                 continue
 
             if neighbor_location not in unvisited_locations:
@@ -122,41 +132,51 @@ def calculate_distance_grid(*, grid: Grid) -> DistanceGrid:
 
             inverted_direction = invert_direction(direction=direction)
             check_location = current_location
-            for _ in range(3):
+            for _ in range(2):
                 check_location = get_next_location(
                     location=check_location,
                     direction=inverted_direction,
                 )
-                if not is_location_in_grid(location=check_location, grid=grid):
+                if not is_location_in_grid(location=check_location, weight_grid=weight_grid):
                     break
 
-                check_direction, _ = distance_grid[check_location[0]][check_location[1]]
-                if check_direction != direction:
+                check_node = node_grid[check_location[0]][check_location[1]]
+                if check_node.source_direction != direction:
                     break
             else:
                 # all 3 check directions were in a row
                 continue
 
-            _, neighbor_distance = distance_grid[neighbor_location[0]][neighbor_location[1]]
-            new_distance = current_distance + cell_weight
-            if new_distance < neighbor_distance:
-                distance_grid[neighbor_location[0]][neighbor_location[1]] = (direction, new_distance)
+            neighbor_node = node_grid[neighbor_location[0]][neighbor_location[1]]
+            new_distance = current_node.distance + cell_weight
+            if new_distance < neighbor_node.distance:
+                node_grid[neighbor_location[0]][neighbor_location[1]] = Node(
+                    distance=new_distance,
+                    source_direction=direction,
+                    source_location=current_location,
+                )
 
         unvisited_locations.remove(current_location)
 
-        if current_location[0] == len(grid) - 1 and current_location[1] == len(grid[0]) - 1:
+        if current_location == (len(weight_grid) - 1, len(weight_grid[0]) - 1):
             break
 
-    return distance_grid
+    return node_grid
 
 
-def print_distance_grid(*, distance_grid: DistanceGrid) -> None:
-    for row in distance_grid:
-        for direction, distance in row:
-            if direction is None:
-                char = str(distance)
-            else:
-                match direction:
+def print_node_grid(*, node_grid: NodeGrid) -> None:
+    path: Set[Location] = set()
+    current_location = (len(node_grid) - 1, len(node_grid[0]) - 1)
+    while current_location != (0, 0):
+        path.add(current_location)
+        node = node_grid[current_location[0]][current_location[1]]
+        current_location = node.source_location
+
+    for row_index, row in enumerate(node_grid):
+        for column_index, node in enumerate(row):
+            location = (row_index, column_index)
+            if location in path:
+                match node.source_direction:
                     case 'up':
                         char = '^'
                     case 'down':
@@ -167,15 +187,18 @@ def print_distance_grid(*, distance_grid: DistanceGrid) -> None:
                         char = '>'
                     case _:
                         raise Exception('unexpected direction')
+            else:
+                # char = str(node.distance)
+                char = '0'
 
             print(char, end="")
         print()
 
 
 def solution(content: str, /) -> int:
-    grid = CONTENT.parse(content)
-    distance_grid = calculate_distance_grid(grid=grid)
-    print_distance_grid(distance_grid=distance_grid)
+    weight_grid = CONTENT.parse(content)
+    node_grid = calculate_node_grid(weight_grid=weight_grid)
+    print_node_grid(node_grid=node_grid)
 
 
 def main():
