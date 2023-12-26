@@ -20,10 +20,17 @@ Direction = Union[
 ]
 
 
+@dataclass(frozen=True, kw_only=True)
+class Source:
+    # direction from source's perspective
+    direction: Direction
+    location: Location
+
+
 @dataclass(kw_only=True)
 class Node:
     distance_from_start: int
-    source_location: Optional[Location]
+    source: Optional[Source]
     visited: bool
     weight: int
 
@@ -33,65 +40,6 @@ class Input:
     end_location: Location
     nodes_by_location: Dict[Location, Node]
     start_location: Location
-
-
-# def find_closest_unvisited_location(
-#         *,
-#         node_grid: NodeGrid,
-#         unvisited_locations: Set[Location],
-# ) -> Location:
-#     min_distance: int = math.inf
-#     min_location: Optional[Location] = None
-#     for location in unvisited_locations:
-#         node = node_grid[location[0]][location[1]]
-#         if node.distance < min_distance:
-#             min_distance = node.distance
-#             min_location = location
-
-#     if min_location is None:
-#         raise Exception('unexpected')
-
-#     return min_location
-
-
-# def invert_direction(*, direction: Direction) -> Direction:
-#     match direction:
-#         case 'up':
-#             return 'down'
-#         case 'down':
-#             return 'up'
-#         case 'left':
-#             return 'right'
-#         case 'right':
-#             return 'left'
-#         case _:
-#             raise Exception('unexpected direction')
-
-
-# def get_next_location(*, location: Location, direction: Direction) -> Location:
-#     match direction:
-#         case 'up':
-#             return (location[0] - 1, location[1])
-#         case 'down':
-#             return (location[0] + 1, location[1])
-#         case 'left':
-#             return (location[0], location[1] - 1)
-#         case 'right':
-#             return (location[0], location[1] + 1)
-#         case _:
-#             raise Exception('unexpected direction')
-
-
-# def is_location_in_grid(*, location: Location, weight_grid: WeightGrid) -> bool:
-#     if location[0] < 0:
-#         return False
-#     if location[0] >= len(weight_grid):
-#         return False
-#     if location[1] < 0:
-#         return False
-#     if location[1] >= len(weight_grid[0]):
-#         return False
-#     return True
 
 
 # def calculate_node_grid(*, weight_grid: WeightGrid) -> NodeGrid:
@@ -198,21 +146,20 @@ class Input:
 #             print(char, end="")
 #         print()
 
-START_LOCATION = (0, 0)
-
 
 def parse_input(*, content: str) -> Input:
     grid = CONTENT.parse(content)
+    start_location = (0, 0)
 
     nodes_by_location = {}
     for row_index, row in enumerate(grid):
         for column_index, cell in enumerate(row):
             location = (row_index, column_index)
-            distance_from_start = cell if location == START_LOCATION else math.inf
+            distance_from_start = cell if location == start_location else math.inf
 
             node = Node(
                 distance_from_start=distance_from_start,
-                source_location=None,
+                source=None,
                 visited=False,
                 weight=cell,
             )
@@ -223,19 +170,83 @@ def parse_input(*, content: str) -> Input:
     return Input(
         end_location=end_location,
         nodes_by_location=nodes_by_location,
-        start_location=(0, 0),
+        start_location=start_location,
     )
 
 
-def find_shortest_routes(*, input: Input) -> Dict[Location, Node]:
-    pass
+def find_closest_unvisited_location(*, nodes_by_location: Dict[Location, Node]) -> Optional[Location]:
+    min_distance: int = math.inf
+    min_location: Optional[Location] = None
+    for location, node in nodes_by_location.items():
+        if node.visited:
+            continue
+
+        if node.distance_from_start < min_distance:
+            min_distance = node.distance_from_start
+            min_location = location
+
+    return min_location
+
+
+def get_all_neighbor_locations(*, location: Location) -> Dict[Direction, Location]:
+    row, column = location
+    return {
+        'up': (row - 1, column),
+        'down': (row + 1, column),
+        'left': (row, column - 1),
+        'right': (row, column + 1),
+    }
+
+
+def find_shortest_routes(*, current_location: Optional[Location], input: Input) -> Dict[Location, Node]:
+    if current_location is None:
+        current_location = input.start_location
+
+    # while end location node has not been visited
+    while not input.nodes_by_location[input.end_location].visited and current_location is not None:
+        current_node = input.nodes_by_location[current_location]
+
+        # update all neighbors
+        neighbor_locations_by_direction = get_all_neighbor_locations(location=current_location)
+        for neighbor_direction, neighbor_location in neighbor_locations_by_direction.items():
+            neighbor_node = input.nodes_by_location.get(neighbor_location)
+            # skip if non-existent
+            if neighbor_node is None:
+                continue
+            # skip if visited
+            if neighbor_node.visited:
+                continue
+
+            # skip if direction of last two steps are the same direction
+            if current_node.source is not None:
+                if current_node.source.direction == neighbor_direction:
+                    source_node = input.nodes_by_location[current_node.source.location]
+                    if source_node.source is not None:
+                        if source_node.source.direction == neighbor_direction:
+                            continue
+
+            new_distance = current_node.distance_from_start + neighbor_node.weight
+            if new_distance == neighbor_node.distance_from_start:
+                # TODO: if calculated distance is the same from two directions, gotta calculate both possibilities
+                print('gotta split here')
+            elif new_distance < neighbor_node.distance_from_start:
+                neighbor_node.distance_from_start = new_distance
+                neighbor_node.source = Source(
+                    direction=neighbor_direction,
+                    location=current_location,
+                )
+
+        current_node.visited = True
+        current_location = find_closest_unvisited_location(nodes_by_location=input.nodes_by_location)
+
+    return input.nodes_by_location
 
 
 def solution(content: str, /) -> int:
     input = parse_input(content=content)
-    print(input)
-    # node_grid = calculate_node_grid(weight_grid=weight_grid)
-    # print_node_grid(node_grid=node_grid)
+    nodes_by_location = find_shortest_routes(current_location=None, input=input)
+
+    return nodes_by_location[input.end_location].distance_from_start
 
 
 def main():
