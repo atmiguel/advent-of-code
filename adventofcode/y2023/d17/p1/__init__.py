@@ -198,7 +198,11 @@ def find_shortest_routes(*, current_location: Optional[Location], input_: Input)
                     if len(source_node.sources) == 1:
                         source_source = source_node.sources[0]
                         if source_source.direction == neighbor_direction:
-                            continue
+                            source_source_node = input_.nodes_by_location[source_source.location]
+                            if len(source_source_node.sources) == 1:
+                                source_source_source = source_source_node.sources[0]
+                                if source_source_source.direction == neighbor_direction:
+                                    continue
 
             new_distance = current_node.distance_from_start + neighbor_node.weight
             if new_distance == neighbor_node.distance_from_start:
