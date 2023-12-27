@@ -42,6 +42,22 @@ class Input:
     start_location: Location
 
 
+def print_nodes(*, end_location: Location, nodes_by_location: Dict[Location, Node]) -> None:
+    for row_index in range(end_location[0]):
+        for column_index in range(end_location[1]):
+            location = (row_index, column_index)
+            node = nodes_by_location[location]
+            if node.distance_from_start < 10:
+                value = f' {node.distance_from_start} '
+            elif node.distance_from_start < 100:
+                value = f' {node.distance_from_start}'
+            else:
+                value = str(node.distance_from_start)
+
+            print(value, end=" ")
+        print()
+        print()
+
 # def print_node_grid(*, node_grid: NodeGrid) -> None:
 #     path: Set[Location] = set()
 #     current_location = (len(node_grid) - 1, len(node_grid[0]) - 1)
@@ -176,6 +192,10 @@ def find_shortest_routes(*, current_location: Optional[Location], input: Input) 
 
 def solution(content: str, /) -> int:
     input = parse_input(content=content)
+    print_nodes(
+        end_location=input.end_location,
+        nodes_by_location=input.nodes_by_location,
+    )
     nodes_by_location = find_shortest_routes(current_location=None, input=input)
 
     return nodes_by_location[input.end_location].distance_from_start
