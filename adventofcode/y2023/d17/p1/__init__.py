@@ -43,8 +43,8 @@ class Input:
 
 
 def print_nodes(*, end_location: Location, nodes_by_location: Dict[Location, Node]) -> None:
-    for row_index in range(end_location[0]):
-        for column_index in range(end_location[1]):
+    for row_index in range(end_location[0] + 1):
+        for column_index in range(end_location[1] + 1):
             location = (row_index, column_index)
             node = nodes_by_location[location]
             if node.distance_from_start < 10:
@@ -54,8 +54,40 @@ def print_nodes(*, end_location: Location, nodes_by_location: Dict[Location, Nod
             else:
                 value = str(node.distance_from_start)
 
-            print(value, end=" ")
+            arrow = ' '
+            for source in node.sources:
+                if source.direction == 'left':
+                    arrow = '<'
+
+            down_node = nodes_by_location.get((location[0], location[1] + 1))
+            if down_node is not None:
+                for source in down_node.sources:
+                    if source.direction == 'right':
+                        if arrow == '<':
+                            raise Exception('unexpected')
+                        arrow = '>'
+
+            print(value, end=arrow)
         print()
+
+        for column_index in range(end_location[1] + 1):
+            location = (row_index, column_index)
+            node = nodes_by_location[location]
+
+            arrow = ' '
+            for source in node.sources:
+                if source.direction == 'up':
+                    arrow = '^'
+
+            down_node = nodes_by_location.get((location[0] + 1, location[1]))
+            if down_node is not None:
+                for source in down_node.sources:
+                    if source.direction == 'down':
+                        if arrow == '^':
+                            raise Exception('unexpected')
+                        arrow = 'v'
+
+            print(f' {arrow} ', end=' ')
         print()
 
 # def print_node_grid(*, node_grid: NodeGrid) -> None:
