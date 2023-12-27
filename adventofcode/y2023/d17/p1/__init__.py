@@ -59,13 +59,6 @@ def print_nodes(*, end_location: Location, nodes_by_location: Dict[Location, Nod
         print()
 
 # def print_node_grid(*, node_grid: NodeGrid) -> None:
-#     path: Set[Location] = set()
-#     current_location = (len(node_grid) - 1, len(node_grid[0]) - 1)
-#     while current_location != (0, 0):
-#         path.add(current_location)
-#         node = node_grid[current_location[0]][current_location[1]]
-#         current_location = node.source_location
-
 #     for row_index, row in enumerate(node_grid):
 #         for column_index, node in enumerate(row):
 #             location = (row_index, column_index)
@@ -140,18 +133,24 @@ def get_all_neighbor_locations(*, location: Location) -> Dict[Direction, Locatio
     }
 
 
-def find_shortest_routes(*, current_location: Optional[Location], input: Input) -> Dict[Location, Node]:
+def find_shortest_routes(*, current_location: Optional[Location], input_: Input) -> Dict[Location, Node]:
     if current_location is None:
-        current_location = input.start_location
+        current_location = input_.start_location
 
     # while end location node has not been visited
-    while not input.nodes_by_location[input.end_location].visited and current_location is not None:
-        current_node = input.nodes_by_location[current_location]
+    while not input_.nodes_by_location[input_.end_location].visited and current_location is not None:
+        current_node = input_.nodes_by_location[current_location]
+
+        print_nodes(
+            end_location=input_.end_location,
+            nodes_by_location=input_.nodes_by_location,
+        )
+        input()
 
         # update all neighbors
         neighbor_locations_by_direction = get_all_neighbor_locations(location=current_location)
         for neighbor_direction, neighbor_location in neighbor_locations_by_direction.items():
-            neighbor_node = input.nodes_by_location.get(neighbor_location)
+            neighbor_node = input_.nodes_by_location.get(neighbor_location)
             # skip if non-existent
             if neighbor_node is None:
                 continue
@@ -163,7 +162,7 @@ def find_shortest_routes(*, current_location: Optional[Location], input: Input) 
             if len(current_node.sources) == 1:
                 source = current_node.sources[0]
                 if source.direction == neighbor_direction:
-                    source_node = input.nodes_by_location[source.location]
+                    source_node = input_.nodes_by_location[source.location]
                     if len(source_node.sources) == 1:
                         source_source = source_node.sources[0]
                         if source_source.direction == neighbor_direction:
@@ -185,20 +184,16 @@ def find_shortest_routes(*, current_location: Optional[Location], input: Input) 
                 )]
 
         current_node.visited = True
-        current_location = find_closest_unvisited_location(nodes_by_location=input.nodes_by_location)
+        current_location = find_closest_unvisited_location(nodes_by_location=input_.nodes_by_location)
 
-    return input.nodes_by_location
+    return input_.nodes_by_location
 
 
 def solution(content: str, /) -> int:
-    input = parse_input(content=content)
-    print_nodes(
-        end_location=input.end_location,
-        nodes_by_location=input.nodes_by_location,
-    )
-    nodes_by_location = find_shortest_routes(current_location=None, input=input)
+    input_ = parse_input(content=content)
+    nodes_by_location = find_shortest_routes(current_location=None, input_=input_)
 
-    return nodes_by_location[input.end_location].distance_from_start
+    return nodes_by_location[input_.end_location].distance_from_start
 
 
 def main():
