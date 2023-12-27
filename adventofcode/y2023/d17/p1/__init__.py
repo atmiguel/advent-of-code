@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import math
-from typing import Sequence, Union, Literal, Tuple, Optional, Set, Dict
+from typing import List, Union, Literal, Tuple, Optional, Dict
 
 from adventofcode.helpers import executor, parsers
 
@@ -30,7 +30,7 @@ class Source:
 @dataclass(kw_only=True)
 class Node:
     distance_from_start: int
-    source: Optional[Source]
+    sources: List[Source]
     visited: bool
     weight: int
 
@@ -40,80 +40,6 @@ class Input:
     end_location: Location
     nodes_by_location: Dict[Location, Node]
     start_location: Location
-
-
-# def calculate_node_grid(*, weight_grid: WeightGrid) -> NodeGrid:
-#     node_grid: NodeGrid = []
-#     for row_index, row in enumerate(weight_grid):
-#         nodes = []
-#         for column_index in range(len(row)):
-#             nodes.append(
-#                 Node(
-#                     distance=0 if row_index == 0 and column_index == 0 else math.inf,
-#                     source_direction=None,
-#                     source_location=None,
-#                 )
-#             )
-
-#         node_grid.append(nodes)
-
-#     unvisited_locations = set([
-#         (row_index, column_index)
-#         for row_index, row in enumerate(weight_grid)
-#         for column_index in range(len(row))
-#     ])
-
-#     while len(unvisited_locations) > 0:
-#         current_location = find_closest_unvisited_location(
-#             node_grid=node_grid,
-#             unvisited_locations=unvisited_locations,
-#         )
-#         current_node = node_grid[current_location[0]][current_location[1]]
-#         cell_weight = weight_grid[current_location[0]][current_location[1]]
-
-#         for direction in ('up', 'down', 'left', 'right'):
-#             neighbor_location = get_next_location(
-#                 location=current_location,
-#                 direction=direction,
-#             )
-#             if not is_location_in_grid(location=neighbor_location, weight_grid=weight_grid):
-#                 continue
-
-#             if neighbor_location not in unvisited_locations:
-#                 continue
-
-#             inverted_direction = invert_direction(direction=direction)
-#             check_location = current_location
-#             for _ in range(2):
-#                 check_location = get_next_location(
-#                     location=check_location,
-#                     direction=inverted_direction,
-#                 )
-#                 if not is_location_in_grid(location=check_location, weight_grid=weight_grid):
-#                     break
-
-#                 check_node = node_grid[check_location[0]][check_location[1]]
-#                 if check_node.source_direction != direction:
-#                     break
-#             else:
-#                 # all 3 check directions were in a row
-#                 continue
-
-#             neighbor_node = node_grid[neighbor_location[0]][neighbor_location[1]]
-#             new_distance = current_node.distance + cell_weight
-#             if new_distance < neighbor_node.distance:
-#                 node_grid[neighbor_location[0]][neighbor_location[1]] = Node(
-#                     distance=new_distance,
-#                     source_direction=direction,
-#                     source_location=current_location,
-#                 )
-
-#         unvisited_locations.remove(current_location)
-
-#         if current_location == (len(weight_grid) - 1, len(weight_grid[0]) - 1):
-#             break
-
-#     return node_grid
 
 
 # def print_node_grid(*, node_grid: NodeGrid) -> None:
@@ -159,7 +85,7 @@ def parse_input(*, content: str) -> Input:
 
             node = Node(
                 distance_from_start=distance_from_start,
-                source=None,
+                sources=[],
                 visited=False,
                 weight=cell,
             )
@@ -218,23 +144,29 @@ def find_shortest_routes(*, current_location: Optional[Location], input: Input) 
                 continue
 
             # skip if direction of last two steps are the same direction
-            if current_node.source is not None:
-                if current_node.source.direction == neighbor_direction:
-                    source_node = input.nodes_by_location[current_node.source.location]
-                    if source_node.source is not None:
-                        if source_node.source.direction == neighbor_direction:
+            if len(current_node.sources) == 1:
+                source = current_node.sources[0]
+                if source.direction == neighbor_direction:
+                    source_node = input.nodes_by_location[source.location]
+                    if len(source_node.sources) == 1:
+                        source_source = source_node.sources[0]
+                        if source_source.direction == neighbor_direction:
                             continue
 
             new_distance = current_node.distance_from_start + neighbor_node.weight
             if new_distance == neighbor_node.distance_from_start:
-                # TODO: if calculated distance is the same from two directions, gotta calculate both possibilities
-                print('gotta split here')
+                neighbor_node.sources.append(
+                    Source(
+                        direction=neighbor_direction,
+                        location=current_location,
+                    )
+                )
             elif new_distance < neighbor_node.distance_from_start:
                 neighbor_node.distance_from_start = new_distance
-                neighbor_node.source = Source(
+                neighbor_node.sources = [Source(
                     direction=neighbor_direction,
                     location=current_location,
-                )
+                )]
 
         current_node.visited = True
         current_location = find_closest_unvisited_location(nodes_by_location=input.nodes_by_location)
